@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:tools="http://schemas.android.com/tools"
+    style="@style/BaseLayout"
+xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+android:id="@+id/relativeLayout">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom"
+        android:layout_below="@+id/top"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="0dp">
+
+
+<!--        <TextView-->
+<!--            android:id="@+id/preview"-->
+<!--            style="@style/ImageView"-->
+<!--            android:layout_height="0dp"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/imageView"-->
+<!--            />-->
+        <com.azbyn.chess_solver.ZoomableImageView
+            android:id="@+id/preview"
+            style="@style/ImageView"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageView"
+            />
+        <com.azbyn.chess_solver.ZoomableImageView
+            android:id="@+id/imageView"
+            style="@style/ImageView"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@id/preview"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+<!--        <GridLayout-->
+<!--            android:id="@+id/preview"-->
+<!--            android:layout_width="match_parent"-->
+
+<!--            android:rowCount="8"-->
+<!--            android:columnCount="8"-->
+<!--            android:orientation="horizontal"-->
+<!--            android:layout_height="0dp"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/imageView">-->
+
+
+<!--        </GridLayout>-->
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <RelativeLayout style="@style/TopBar"
+    android:id="@+id/top">
+
+    <ImageButton style="@style/ImageButton"
+        android:id="@+id/back"
+        android:src="@drawable/ic_back" />
+
+        <TextView
+            android:id="@+id/topText"
+            style="@style/TopText"
+            android:layout_toEndOf="@+id/back"
+            android:text="Categorise" />
+</RelativeLayout>
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    style="@style/BottomBar"
+    android:id="@+id/bottom"
+    android:layout_height="60dp"
+    android:layout_width="match_parent">
+
+
+    <Button style="@style/BtnImage50"
+        android:id="@+id/reset"
+        android:background="@drawable/ic_reset"
+        android:text="@string/reset"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.25"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button style="@style/BtnImage50"
+        android:id="@+id/ok"
+        android:background="@drawable/ic_ok_small"
+        android:text="@string/ok"
+        app:layout_constraintHorizontal_bias="0.75"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+</RelativeLayout>

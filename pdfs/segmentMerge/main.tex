@@ -1,0 +1,93 @@
+\documentclass{article}
+\usepackage{graphics}
+\usepackage{amsmath,amssymb, mathtools, amsfonts}
+\usepackage{array}
+\usepackage{geometry}
+\usepackage{extarrows}
+\usepackage[utf8]{inputenc}
+
+\geometry{a4paper,left=30mm,right=30mm,top=20mm,bottom=25mm}
+
+\setlength\parindent{0cm}
+
+%% 29 aug 2020
+\renewcommand{\Pr}[1]{Pr_d(#1)}
+
+\newcommand{\ivec}{\vec{\imath}}
+\newcommand{\jvec}{\vec{\jmath}}
+
+\newcommand{\ihat}{\hat{\imath}}
+\newcommand{\jhat}{\hat{\jmath}}
+\newcommand{\vect}[2]{\left(\;\begin{matrix}#1\\#2\end{matrix}\;\right)}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\begin{document}
+
+\subsection*{Transformare linie best fit in segment best fit}
+
+Fie:
+\[ d: \vec{v} + P_0,\quad \text{cu $\vec{v}\ne\vec{0}$, $P_0$ $\in \mathbb{R}^2$}, \]
+\[ \left\{ P_i \right\} _{i=\overline{1,n}},\quad \text{cu $n\in \mathbb{N}^*$}. \]
+
+Notăm cu $\Pr{A}$ proiecția punctului $A$ pe dreapta $d$.
+\smallskip
+
+Notăm $A = A_x \ivec+ A_y\jvec$, unde $\ivec, \jvec $ sunt vectorii bazei inițiale.
+\medskip
+
+
+Proiectăm punctele $P_i$ pe linia $d$ și cautăm $P_i$ și $P_j$ cu
+distanța maximă între proiecții (ie $d(\Pr{P_i}, \Pr{P_j})$).
+
+\medskip
+
+Considerăm problema în baza dată de dreapta $d$:
+\[
+\begin{cases}%\left\{
+  \ihat = v_x \ivec+ v_y\jvec,\\
+  \jhat = -v_y \ivec+ v_x\jvec\,
+\end{cases}%\left\{
+\]
+de unde avem:
+
+\[
+\vect{\ivec}{\jvec}
+=
+\frac{1}{v_x^2+v_y^2}
+\begin{pmatrix}
+  v_x & -v_y\\
+  v_y & v_x\\
+\end{pmatrix}
+\cdot
+\vect{\ihat}{\jhat}
+\]
+Notăm $A = A_{x'} \ihat+ A_{y'}\jhat$.
+\medskip
+
+Avem
+\[\Pr{P_i} = P_{ix'}\ihat+0\jhat\]
+
+\[d(\Pr{P_i}, \Pr{P_j}) = \| P_{ix'}\ihat - P_{jx'}\ihat \| =
+ P_{ix'} - P_{jx'}.\]
+%% \medskip
+
+Deci distanța dintre proiecții este dată de prima componentă a vectorului în noua baza.
+
+Punctele cu distanța maxima sunt:
+\[P_i, \quad\text{ unde } i = \argmin\limits_k (\Pr{P_k})_{x'}  \]
+și
+\[P_j, \quad\text{ unde } j = \argmax\limits_k (\Pr{P_k})_{x'}. \]
+
+Revenind la baza inițială:
+\[
+\Pr{P_i} = \frac{1}{v^2_x+v^2_y} \cdot (P_{ix} v_x + P_{iy} v_y)
+= \frac{1}{\|v\|^2} \cdot \left\langle\,P,\, \vec{v}\,\right\rangle
+%% d(\Pr{P_i}, \Pr{P_j}) = \| P_{ix'}\ihat - P_{jx'}\ihat \| =
+ %% P_{ix'} - P_{jx'}
+ \]
+
+%% Căutăm 
+
+\end{document}
