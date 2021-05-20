@@ -7,8 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import com.azbyn.chess_solver.Misc.logd
 import com.azbyn.chess_solver.capture.CaptureFragment
-import com.azbyn.chess_solver.step2.CategoriseFragment
-import kotlinx.android.synthetic.main.categorise.*
+import com.azbyn.chess_solver.classification.CategoriseFragment
 import kotlinx.android.synthetic.main.result.*
 import kotlinx.android.synthetic.main.result.back
 import kotlinx.android.synthetic.main.result.imageView

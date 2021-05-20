@@ -12,6 +12,8 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.azbyn.chess_solver.Misc.logd
 import com.azbyn.chess_solver.capture.CaptureFragment
+import com.azbyn.chess_solver.classification.CategoriseFragment
+import com.azbyn.chess_solver.classification.SquaresPreviewFragment
 import com.azbyn.chess_solver.step1.*
 import com.azbyn.chess_solver.step2.*
 import com.azbyn.chess_solver.crop.CropFragment

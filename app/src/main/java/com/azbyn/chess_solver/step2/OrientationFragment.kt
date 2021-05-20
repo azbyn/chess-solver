@@ -122,7 +122,7 @@ class OrientationFragment : BaseSlidersFragment(
                         val rect = getRect(i, j, xCoords, yCoords)
 
                         val average = mean(/*baseMat*/resultMat.submat(rect))[0]
-                        logd("mean[$i, $j]: $average")
+                        //logd("mean[$i, $j]: $average")
                         if (average < cutoff) {
                             val col = if ((i+j)%2==0) Colors.red else Colors.green
                             rectangle(previewMat, rect, col, -1)

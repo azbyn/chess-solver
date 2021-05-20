@@ -1,9 +1,7 @@
-package com.azbyn.chess_solver.step2
+package com.azbyn.chess_solver.classification
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.Image
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,32 +12,11 @@ import kotlinx.android.synthetic.main.categorise.*
 import org.json.JSONObject
 import org.opencv.android.Utils
 import org.opencv.core.Core.extractChannel
-import org.opencv.core.CvType.CV_8UC3
 import org.opencv.core.CvType.CV_8UC4
 import org.opencv.core.Mat
 import org.opencv.core.Rect
 import org.opencv.imgproc.Imgproc.rectangle
-
-enum class PieceType {
-    Nothing,
-
-    King,
-    Queen,
-    Rook,
-    Pawn,
-    Bishop,
-    Knight,
-}
-enum class PieceColor { White, Black }
-data class Piece(val col: PieceColor, val type: PieceType) {
-    constructor() : this(PieceColor.White, PieceType.Nothing)
-
-    val isNothing get() = type == PieceType.Nothing
-
-    companion object {
-        var Nothing = Piece(PieceColor.White, PieceType.Nothing)
-    }
-}
+import java.io.File
 
 class CategoriseFragment : ImageViewFragment() {
     override fun getImageView(): ZoomableImageView = imageView!!
@@ -83,25 +60,46 @@ class CategoriseFragment : ImageViewFragment() {
 //    override val topBarName: String get() = "Categorise"
 
     class VM : BaseViewModel() {
-        private val inViewModel: OrientationFragment.VM by viewModelDelegate()
+        private lateinit var boardClassifier: BoardClassifier
+        private val inViewModel: SquaresPreviewFragment.VM by viewModelDelegate()
 
-        private val mainMat get() = inViewModel.resultMat
+        private val fullMat get() = inViewModel.fullMat
 //        private val previewMat = Mat.zeros(boardSize, boardSize, CV_8UC3)
         private var previewMat = Mat.zeros(boardSize, boardSize, CV_8UC4)
 
 
         private var piecesMap = mapOf<Piece, Mat>()
 
-        val result = Array(64) { _ -> Piece.Nothing }.also {
-            it[0] = Piece(PieceColor.White, PieceType.Bishop)
-        }
+        lateinit var result: Board
+//        val result = Array(8) {Array(8) { Piece.Nothing }}
 
         fun fastForward(frag: BaseFragment) {
             init(frag)
             update()
         }
 
-        private fun initPieces(ctx: Context) {
+        fun readPieceClassifier(ctx: MainActivity, relpath: String): PieceClassifier {
+            val inStream = ctx.assets.open(relpath)
+            val file = File("${ctx.path}/$relpath")
+            file.outputStream().use { inStream.copyTo(it) }
+
+            return pieceClassifierFromFile(file.path)
+        }
+
+        private fun initClassifier(ctx: MainActivity) {
+            val suffix = "_$svmSquareSize"+ (if (svmUseMargins) "_w_m" else "_no_m")
+
+            logi("suffix: $suffix - $svmUseMargins")
+
+            boardClassifier = BoardClassifier(
+                white=readPieceClassifier(ctx, "white_classifier$suffix"),
+                black=readPieceClassifier(ctx, "black_classifier$suffix"))
+
+        }
+
+        private fun initPieces(ctx: MainActivity) {
+            initClassifier(ctx)
+
             fun impl(id: String): Mat {
                 val uri = Uri.parse("android.resource://${ctx.packageName}/drawable/$id")
                 val stream = ctx.contentResolver.openInputStream(uri)
@@ -116,19 +114,19 @@ class CategoriseFragment : ImageViewFragment() {
             }
 
             piecesMap = mapOf<Piece, Mat>(
-                Piece(PieceColor.Black, PieceType.King)   to impl("pc_bd"),
-                Piece(PieceColor.Black, PieceType.Queen)  to impl("pc_qd"),
-                Piece(PieceColor.Black, PieceType.Rook)   to impl("pc_rd"),
-                Piece(PieceColor.Black, PieceType.Bishop) to impl("pc_bd"),
-                Piece(PieceColor.Black, PieceType.Knight) to impl("pc_nd"),
-                Piece(PieceColor.Black, PieceType.Pawn)   to impl("pc_pd"),
+                Piece(Piece.Color.Black, Piece.Type.King)   to impl("pc_bd"),
+                Piece(Piece.Color.Black, Piece.Type.Queen)  to impl("pc_qd"),
+                Piece(Piece.Color.Black, Piece.Type.Rook)   to impl("pc_rd"),
+                Piece(Piece.Color.Black, Piece.Type.Bishop) to impl("pc_bd"),
+                Piece(Piece.Color.Black, Piece.Type.Knight) to impl("pc_nd"),
+                Piece(Piece.Color.Black, Piece.Type.Pawn)   to impl("pc_pd"),
 
-                Piece(PieceColor.White, PieceType.King)   to impl("pc_bl"),
-                Piece(PieceColor.White, PieceType.Queen)  to impl("pc_ql"),
-                Piece(PieceColor.White, PieceType.Rook)   to impl("pc_rl"),
-                Piece(PieceColor.White, PieceType.Bishop) to impl("pc_bl"),
-                Piece(PieceColor.White, PieceType.Knight) to impl("pc_nl"),
-                Piece(PieceColor.White, PieceType.Pawn)   to impl("pc_pl")
+                Piece(Piece.Color.White, Piece.Type.King)   to impl("pc_bl"),
+                Piece(Piece.Color.White, Piece.Type.Queen)  to impl("pc_ql"),
+                Piece(Piece.Color.White, Piece.Type.Rook)   to impl("pc_rl"),
+                Piece(Piece.Color.White, Piece.Type.Bishop) to impl("pc_bl"),
+                Piece(Piece.Color.White, Piece.Type.Knight) to impl("pc_nl"),
+                Piece(Piece.Color.White, Piece.Type.Pawn)   to impl("pc_pl")
                 )
         }
 
@@ -136,6 +134,17 @@ class CategoriseFragment : ImageViewFragment() {
             frag.tryOrComplain {
                 if (piecesMap.isEmpty())
                     initPieces(frag.mainActivity)
+
+                result = Board { x, y ->
+                    val classifier = if (Board.isBlackSquare(x, y)) boardClassifier.black else
+                        boardClassifier.white
+                    val vector = inViewModel.getVectorAt(x, y)
+                    val res = classifier.classify(vector)
+                    if (!res.isNothing)
+                        logd("[$x, $y]: bl ${if (Board.isBlackSquare(x, y)) "b" else "w"} $res")
+                    return@Board res
+                }
+                logd("board:\n$result")
             }
         }
 
@@ -165,32 +174,29 @@ class CategoriseFragment : ImageViewFragment() {
         fun update(frag: CategoriseFragment) {
             frag.tryOrComplain {
                 update()
-                frag.setImageGrayscalePreview(mainMat)
+                frag.setImageGrayscalePreview(fullMat)
                 frag.setImageGrayscalePreview(previewMat, frag.previewImg)
             }
         }
 
         private fun update() {
-            for (i in 0.until(8)) {
-                for (j in 0.until(8)) {
-                    val col = if ((i+j) % 2 == 0) whiteSquareCol else blackSquareCol
-                    val x0 = i * squareSize
-                    val y0 = j * squareSize
+            for ((i, j) in result.indices) {
+                val col = if ((i+j) % 2 == 0) whiteSquareCol else blackSquareCol
+                val x0 = i * squareSize
+                val y0 = j * squareSize
 
-                    val rect = Rect(x0, y0, squareSize, squareSize)
+                val rect = Rect(x0, y0, squareSize, squareSize)
 
-                    rectangle(previewMat, rect, col, -1)
-                    val piece = result[i+j*8]
-                    if (piece.isNothing) continue
+                rectangle(previewMat, rect, col, -1)
+                val piece = result[i, j]
+                if (piece.isNothing) continue
 
 
-                    val img = piecesMap[piece]!!
-                    val mask = Mat()
-                    extractChannel(img, mask, 3)//extract alpha
-                    img.copyTo(previewMat.submat(rect), mask)
-                }
+                val img = piecesMap[piece]!!
+                val mask = Mat()
+                extractChannel(img, mask, 3)//extract alpha
+                img.copyTo(previewMat.submat(rect), mask)
            }
-
         }
     }
 }
