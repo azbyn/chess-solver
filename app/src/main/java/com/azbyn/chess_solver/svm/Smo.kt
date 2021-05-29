@@ -7,7 +7,7 @@ import kotlin.math.min
 import kotlin.system.exitProcess
 
 fun trainSmo(settings: SvmSettings, X_: List<Vector>, y_: List<Double>): Svm {
-    println("smo start")
+//    println("smo start")
     val K = settings.K
     val C = settings.C
     val tol = settings.tol

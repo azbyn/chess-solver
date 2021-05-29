@@ -7,8 +7,8 @@ import org.opencv.core.CvType.CV_32F
 import org.opencv.imgproc.Imgproc.*
 import org.opencv.ml.SVM
 
-const val squareSize = 32.0
-const val useMargins = false
+const val svmSquareSize = 32
+const val svmUseMargins = false
 //const val useMargins = true
 
 //TODO
@@ -43,11 +43,12 @@ fun <T: MultiSvm> PieceClassifier<T>.classifyChoices(x: Vector): List<Piece> =
 
 fun <T: MultiSvm> PieceClassifier<T>.classify(x: Vector): Piece = Piece.fromClass(multiSvm.classify(x))
 
+private const val squareSizeD = svmSquareSize.toDouble()
 private val dst = MatOfPoint2f(
     Point(0.0, 0.0),
-    Point(squareSize, 0.0),
-    Point(squareSize, squareSize),
-    Point(0.0, squareSize)
+    Point(squareSizeD, 0.0),
+    Point(squareSizeD, squareSizeD),
+    Point(0.0, squareSizeD)
 )
 
 data class BoundsD(val x0: Double, val y0: Double, val x1: Double, val y1: Double)
@@ -63,7 +64,7 @@ fun wrapSquareNoMargins(fullImg: Mat, result: Mat, bounds: BoundsD) {
 
 
     //warpAffine(baseMat, previewMat, m, Size(squareSize, squareSize))
-    warpPerspective(fullImg, result, m, Size(squareSize, squareSize))
+    warpPerspective(fullImg, result, m, Size(squareSizeD, squareSizeD))
 }
 private fun wrapSquareWithMargins(fullImg: Mat, result: Mat, bounds: BoundsD) {
     val dx = (bounds.x1 - bounds.x0)/2
@@ -77,7 +78,7 @@ private fun wrapSquareWithMargins(fullImg: Mat, result: Mat, bounds: BoundsD) {
 }
 
 
-val wrapSquare = if (useMargins) ::wrapSquareWithMargins else ::wrapSquareNoMargins
+val wrapSquare = if (svmUseMargins) ::wrapSquareWithMargins else ::wrapSquareNoMargins
 
 
 fun pieceImageToVector(fullImg: Mat, bounds: BoundsD): Vector {

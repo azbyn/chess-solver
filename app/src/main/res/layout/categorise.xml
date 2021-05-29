@@ -69,7 +69,7 @@ android:id="@+id/relativeLayout">
             android:id="@+id/topText"
             style="@style/TopText"
             android:layout_toEndOf="@+id/back"
-            android:text="Categorise" />
+            android:text="Categorize" />
 </RelativeLayout>
 
 <androidx.constraintlayout.widget.ConstraintLayout

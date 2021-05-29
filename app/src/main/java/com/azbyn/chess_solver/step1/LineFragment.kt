@@ -149,7 +149,7 @@ class LineFragment : BaseSlidersFragment(
             fun getOtherIdx(ind: Int) = if (ind < half) (ind + half) else (ind - half)
 
             //logi("buckets: ${buckets.toStr()}")
-            var ind = buckets.indices.maxBy { buckets[it] }!!
+            var ind = buckets.indices.maxByOrNull { buckets[it] }!!
             var ind2 = getOtherIdx(ind)
             val backups = Pair(ind, ind2)
             while (true) {
@@ -168,7 +168,7 @@ class LineFragment : BaseSlidersFragment(
                 } else {
                     break
                 }
-                ind = buckets.indices.maxBy { buckets[it] }!!
+                ind = buckets.indices.maxByOrNull { buckets[it] }!!
                 // if buckets[ind2] < buckets[ind]/2 goto the second one
                 // aka if we don't have perpendicular lines
                 ind2 = getOtherIdx(ind)

@@ -130,15 +130,21 @@ class SuperSegment(s: Segment) {
         return res
     }
     fun mergedSegments(): Segment {
-        var direction = Point(0.0,0.0)
-        var averageP = Point(0.0,0.0)
+        var direction = Point(0.0, 0.0)
+        var averageP = Point(0.0, 0.0)
         val threshold = 50
-        for (s in segments) {
+        for ((i, s) in segments.withIndex()) {
             var dir = s.p2 - s.p1
+
+            val angle = atan2(dir.y, dir.x) // in (-pi, pi]
+            if (angle > 0)
+                dir *= -1
+
+            logd("dir[$i] $dir")
             // we want the directions to cancel each other
             //if ()
-            if (dir.x < -threshold) dir *= -1
-            else if (dir.y < -threshold) dir *= -1
+            //if (dir.x < -threshold) dir *= -1
+            //else if (dir.y < -threshold) dir *= -1
             direction += dir
             averageP +=s.p1+s.p2
         }

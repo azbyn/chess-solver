@@ -8,7 +8,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.azbyn.chess_solver.*
+import com.azbyn.chess_solver.svm.OneVsOneSvm
+import com.azbyn.chess_solver.svm.OpenCvSvm
 import kotlinx.android.synthetic.main.categorise.*
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.opencv.android.Utils
 import org.opencv.core.Core.extractChannel
@@ -17,6 +21,10 @@ import org.opencv.core.Mat
 import org.opencv.core.Rect
 import org.opencv.imgproc.Imgproc.rectangle
 import java.io.File
+
+
+//typealias MultiSvmKind = OneVsOneSvm
+typealias MultiSvmKind = OpenCvSvm
 
 class CategoriseFragment : ImageViewFragment() {
     override fun getImageView(): ZoomableImageView = imageView!!
@@ -57,13 +65,14 @@ class CategoriseFragment : ImageViewFragment() {
     }
 
     //override val prevFragment = FragmentIndex.PERSPECTIVE
-//    override val topBarName: String get() = "Categorise"
+    //override val topBarName: String get() = "Categorise"
 
     class VM : BaseViewModel() {
-        private lateinit var boardClassifier: BoardClassifier
+
+        private lateinit var boardClassifier: BoardClassifier<MultiSvmKind>
         private val inViewModel: SquaresPreviewFragment.VM by viewModelDelegate()
 
-        private val fullMat get() = inViewModel.fullMat
+        private val boardImage get() = inViewModel.boardImage
 //        private val previewMat = Mat.zeros(boardSize, boardSize, CV_8UC3)
         private var previewMat = Mat.zeros(boardSize, boardSize, CV_8UC4)
 
@@ -78,18 +87,23 @@ class CategoriseFragment : ImageViewFragment() {
             update()
         }
 
-        fun readPieceClassifier(ctx: MainActivity, relpath: String): PieceClassifier {
+        fun readPieceClassifier(ctx: MainActivity, relpath: String): PieceClassifier<OpenCvSvm> {
             val inStream = ctx.assets.open(relpath)
             val file = File("${ctx.path}/$relpath")
             file.outputStream().use { inStream.copyTo(it) }
 
             return pieceClassifierFromFile(file.path)
         }
+        val suffix = "_$svmSquareSize"+ (if (svmUseMargins) "_wM" else "_noM")
+
+        private fun readBoard(ctx: MainActivity): BoardClassifier<MultiSvmKind> {
+            val str = ctx.assets.open("board$suffix").reader().readText()
+//            val str = File("${ctx.path}/$relpath/board$suffix").readText()
+            return Json.decodeFromString<BoardClassifier<MultiSvmKind>>(string = str)
+        }
 
         private fun initClassifier(ctx: MainActivity) {
-            val suffix = "_$svmSquareSize"+ (if (svmUseMargins) "_w_m" else "_no_m")
-
-            logi("suffix: $suffix - $svmUseMargins")
+//            boardClassifier = readBoard(ctx)
 
             boardClassifier = BoardClassifier(
                 white=readPieceClassifier(ctx, "white_classifier$suffix"),
@@ -135,15 +149,7 @@ class CategoriseFragment : ImageViewFragment() {
                 if (piecesMap.isEmpty())
                     initPieces(frag.mainActivity)
 
-                result = Board { x, y ->
-                    val classifier = if (Board.isBlackSquare(x, y)) boardClassifier.black else
-                        boardClassifier.white
-                    val vector = inViewModel.getVectorAt(x, y)
-                    val res = classifier.classify(vector)
-                    if (!res.isNothing)
-                        logd("[$x, $y]: bl ${if (Board.isBlackSquare(x, y)) "b" else "w"} $res")
-                    return@Board res
-                }
+                result = boardClassifier.classify(boardImage)
                 logd("board:\n$result")
             }
         }
@@ -174,7 +180,7 @@ class CategoriseFragment : ImageViewFragment() {
         fun update(frag: CategoriseFragment) {
             frag.tryOrComplain {
                 update()
-                frag.setImageGrayscalePreview(fullMat)
+                frag.setImageGrayscalePreview(boardImage.mat)
                 frag.setImageGrayscalePreview(previewMat, frag.previewImg)
             }
         }

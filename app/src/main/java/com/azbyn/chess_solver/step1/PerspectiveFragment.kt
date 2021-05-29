@@ -14,10 +14,10 @@ class PerspectiveFragment : BaseSlidersFragment(
     override val viewModel: VM by viewModelDelegate()
     override val topBarName: String get() = "Perspective"
 
-    override fun saveData(path: String): JSONObject {
-        imwrite("$path/table.png", viewModel.resultMat)
-        return super.saveData(path)
-    }
+//    override fun saveData(path: String): JSONObject {
+//        imwrite("$path/table.png", viewModel.resultMat)
+//        return super.saveData(path)
+//    }
 
     class VM : SlidersViewModel() {
         private val inViewModel: EditSquareFragment.VM by viewModelDelegate()
