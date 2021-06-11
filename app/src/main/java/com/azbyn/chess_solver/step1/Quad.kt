@@ -1,11 +1,10 @@
-package com.azbyn.chess_solver.quad
+package com.azbyn.chess_solver.step1
 
 import com.azbyn.chess_solver.dist
 import com.azbyn.chess_solver.toRad
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc.line
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.atan2
 
 interface Quad {
@@ -15,8 +14,6 @@ interface Quad {
 }
 
 class PointQuad(/*private*/ val points: Array<Point>): Quad {
-    constructor(p: MatOfPoint2f) : this(
-        points = Array(4) { i-> Point(p[i, 0][0], p[i,0][1]) })
     constructor(func: (i: Int)-> Point) : this(
         points = Array(4, func))
 //        { i-> Point(p[i, 0][0], p[i,0][1]) })
@@ -45,7 +42,7 @@ class PointQuad(/*private*/ val points: Array<Point>): Quad {
     //   0
     // 3   1
     //   2
-    // but we check for the smalest angle to fix this, and replace it with case 2
+    // but we check for the smallest angle to fix this, and replace it with case 2
     fun sortCW(angleCloseEnough: Double = 15.toRad()) {
         //var maxAngle = -100.0
         var minAngle = 100.0

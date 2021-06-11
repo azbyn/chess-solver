@@ -5,13 +5,71 @@ import com.azbyn.chess_solver.*
 import com.azbyn.chess_solver.Misc.logd
 import com.azbyn.chess_solver.Misc.logw
 import com.azbyn.chess_solver.Misc.logwtf
-import com.azbyn.chess_solver.step1.Line
 import com.azbyn.chess_solver.step1.PerspectiveFragment
 import org.opencv.core.Mat
 import org.opencv.core.Point
 import org.opencv.imgproc.Imgproc.*
 import java.lang.Exception
 import kotlin.math.*
+import org.opencv.core.Scalar
+
+//ρ = x cosθ + y sinθ
+data class HesseLine(val rho: Double, val theta: Double,
+                val sinTh: Double = sin(theta),
+                val cosTh: Double = cos(theta)) {
+    //might fail
+    fun xIntersection(x: Double): Double = (rho-x*cosTh) / sinTh
+    // ditto
+    fun yIntersection(y: Double): Double = (rho-y*sinTh) / cosTh
+
+
+    //val isVertical get() = theta < PI/4 || theta > PI*3/4
+    fun drawTo(mat: Mat, col: Scalar, thickness: Int = 3) {
+        val x0 = cosTh * rho
+        val y0 = sinTh * rho
+        val big = 10000
+        val p1 = Point(x0 + big * (-sinTh), y0 + big * cosTh)
+        val p2 = Point(x0 - big * (-sinTh), y0 - big * cosTh)
+        line(mat, p1, p2, col, thickness)
+    }
+    fun rotated(angleRad: Double, rotationMatrix: DoubleArray): HesseLine {
+        //val oldTh = theta
+        //val oldR = rho
+        val theta = (this.theta - angleRad + PI) % (PI)
+        //val theta = this.theta - angleRad
+        @Suppress("UnnecessaryVariable") val m = rotationMatrix
+
+        //val rho = r - sub
+        //logi("theta = ${theta.toDeg()}")
+        val cosTh = cos(theta)
+        val sinTh = sin(theta)
+        val oldX0 = this.cosTh * this.rho
+        val oldY0 = this.sinTh * this.rho
+
+        // rho = x cos(theta) + y sin(theta)
+
+        val x0 = m[0] * oldX0 + m[1] *oldY0 + m[2]
+        val y0 = m[3] * oldX0 + m[4] *oldY0 + m[5]
+
+        //val x0 = m[0, 0][0] * oldX0 + m[0, 1][0] *oldY0 + m[0, 2][0]
+        //val y0 = m[1, 0][0] * oldX0 + m[1, 1][0] *oldY0 + m[1, 2][0]
+        val rho = cosTh * x0 + sinTh * y0
+        return HesseLine(rho, theta, cosTh = cosTh, sinTh = sinTh)
+    }
+    fun intersection(l: HesseLine): Point {
+        val a = cosTh
+        val b = sinTh
+        val c = rho
+
+        val d = l.cosTh
+        val e = l.sinTh
+        val f = l.rho
+        val div = a*e-b*d
+        return Point(
+            (c*e - b*f)/div,
+            (a*f - c*d)/div)
+    }
+}
 
 class LineMerge2Fragment : BaseSlidersFragment(
 //    SliderData("thrsh", default = 100/*100*//*75*/, min = 0, max = 255*2, stepSize = 5),
@@ -65,7 +123,8 @@ class LineMerge2Fragment : BaseSlidersFragment(
             val squareSize = ogMat.width() / (if (hasMargin) 10 else 8)
             //val prevTh = lastValues[0]
 
-            fun impl(lines: ArrayList<Line>, extraOffset: Int, getCoord: (x: Line)->Double): DoubleArray {
+            fun impl(lines: ArrayList<HesseLine>, extraOffset: Int,
+                     getCoord: (x: HesseLine)->Double): DoubleArray {
 //                val buckets = IntArray(8)
                 val coords = ArrayList(lines.map(getCoord).sorted())// as MutableList
 
@@ -136,6 +195,8 @@ class LineMerge2Fragment : BaseSlidersFragment(
                     }
                     averageLen = lenSum / cnt
                     //if values are near 0 it would be bad if we just summed (it % averageLen)
+                    //we already implemented a function that does the circular average of values
+                    //in 0..pi, so let's use that.
                     averageOffset = coords.map { (it % averageLen)/averageLen * PI/2 }
                         .angleAverage() / (PI/2) * averageLen
 //                    return res.toDoubleArray()
@@ -174,13 +235,14 @@ class LineMerge2Fragment : BaseSlidersFragment(
 //                        Colors.green, 3)
 //                }
 //            }
+            val color = Colors.darkGreen
             for (c in outHori) {
                 line(previewMat, Point(0.0, c), Point(ogMat.width().toDouble(), c),
-                    Colors.darkMagenta, 3)
+                    color, 3)
             }
             for (c in outVert) {
                 line(previewMat, Point(c, 0.0), Point(c, ogMat.height().toDouble()),
-                    Colors.darkMagenta, 3)
+                    color, 3)
             }
         }
 

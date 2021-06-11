@@ -2,17 +2,14 @@ package com.azbyn.chess_solver.step1
 
 import com.azbyn.chess_solver.*
 import com.azbyn.chess_solver.Misc.logd
-import com.azbyn.chess_solver.Misc.logi
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc.*
 import kotlin.math.*
 
 //ax+by+c=0
-data class ABCLine(val a: Double, val b: Double, val c: Double) {
+data class Line(val a: Double, val b: Double, val c: Double) {
     private constructor(a: Double, b: Double, p0: Point)
-            : this(a, b, c=-a*p0.x-b*p0.y) {
-        //logi("now a= $a, b=$b, c = $c")
-    }
+            : this(a, b, c=-a*p0.x-b*p0.y)
     constructor(p1: Point, p2: Point) : this(
         a = p1.y - p2.y,
         b = p2.x - p1.x,
@@ -21,13 +18,13 @@ data class ABCLine(val a: Double, val b: Double, val c: Double) {
 
     companion object {
         fun fromDirPoint(dir: Point, p: Point)
-                = ABCLine(a=dir.y, b=-dir.x, p0=p)
+                = Line(a=dir.y, b=-dir.x, p0=p)
     }
 
     fun dist(p: Point): Double {
         return abs(a *p.x + b*p.y+c)/sqrtThing
     }
-    fun intersect(other: ABCLine): Point? {
+    fun intersect(other: Line): Point? {
         // https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
         // (the Using homogeneous coordinates bit)
 
@@ -75,7 +72,10 @@ data class ABCLine(val a: Double, val b: Double, val c: Double) {
     val p1 get() = points[0]
     val p2 get() = points[1]
 
-    val line = ABCLine(p1, p2)
+    operator fun component1() = p1
+    operator fun component2() = p2
+
+    val line = Line(p1, p2)
 
     private fun dist(p: Point) = line.dist(p)
     fun normalizedDir() = (p1-p2).normalized()
@@ -83,32 +83,61 @@ data class ABCLine(val a: Double, val b: Double, val c: Double) {
     /*init {
         logd("L: $line, (${p1.x}, ${p1.y}) - (${p2.x}, ${p2.y})")
     }*/
-    fun shouldMerge(s: Segment, tDelta: Double): Boolean {
-        val delta = tDelta * (len+s.len)
+//    companion object {
+//        var maxGamma = 0.0
+//    }
+    fun shouldMerge(s: Segment, thresh: Double): Boolean {
+        //val delta = sqrt(tDelta) * (len+s.len)
+
+        //logd("delta = $delta")
+        //logd("1/tdelta = ${1/tDelta}")
         val x1 = dist(s.p1)
         val x2 = dist(s.p2)
 
         val y1 = s.dist(p1)
         val y2 = s.dist(p2)
-        val gamma = (x1+x2+y1+y2)/4 //(dist(s.p1)+dist(s.p2)+s.dist(p1) + s.dist(p2)) / 4
-        val thresh = gamma*delta
-        /*val res = */
-        return len > thresh && s.len > thresh
+        val avrg = (x1+x2+y1+y2)/4 //(dist(s.p1)+dist(s.p2)+s.dist(p1) + s.dist(p2)) / 4
+//        val avrg = (x1+x2)/2 //(dist(s.p1)+dist(s.p2)+s.dist(p1) + s.dist(p2)) / 4
+//        val thresh = gamma*delta
+
+//        logd("g1: ${(gamma- (x1+x2)/2).format()}")
+
+        val res = avrg < thresh // len > thresh && s.len > thresh
+        /*if (res) {
+            if (gamma > maxGamma) {
+                maxGamma = gamma
+                logd("m-gamma: ${gamma.format()}")
+            }
+        }*/
+        //logd("res: $res\n")
+
+        //return len > thresh && s.len > thresh
         //logd("t = ${thresh.format()}, a = ${len.format()}, b = ${s.len.format()}, res = $res")
         //logd("${x1.format()}, ${x2.format()}, ${y1.format()}, ${y2.format()}")
-        //return res
+        return res
     }
     fun drawTo(mat: Mat, col: Scalar, thickness: Int = 3) {
         line(mat, p1, p2, col, thickness)
     }
 }
+fun getAverage(segments: List<Segment>) {
+    val averageDir = segments.map { s ->
+        var dir = s.p2 - s.p1
+        val angle = atan2(dir.y, dir.x) // in (-pi, pi]
+        if (angle < 0) dir *= -1
+        return@map dir
+    }.sum()
+}
 
-class SuperSegment(s: Segment) {
+private fun Iterable<Point>.sum(): Point = fold(Point(0.0, 0.0)) { a, it -> a + it }
+
+
+class SegmentGroup(s: Segment) {
     private var segments = arrayListOf(s)
     private val biggest get() = segments[0]
     //returns shouldMerge
-    fun checkAndAdd(s: Segment, tDelta: Double): Boolean {
-        if (!biggest.shouldMerge(s, tDelta)) return false
+    fun checkAndAdd(s: Segment, thresh: Double): Boolean {
+        if (!biggest.shouldMerge(s, thresh)) return false
         //keep the biggest at index 0
         if (s.len > biggest.len) {
             segments.add(0, s)
@@ -129,27 +158,23 @@ class SuperSegment(s: Segment) {
         }
         return res
     }
-    fun mergedSegments(): Segment {
+    fun toSingleSegment(): Segment {
         var direction = Point(0.0, 0.0)
         var averageP = Point(0.0, 0.0)
-        val threshold = 50
-        for ((i, s) in segments.withIndex()) {
+        //val threshold = 50
+        for (s in segments) {
             var dir = s.p2 - s.p1
 
             val angle = atan2(dir.y, dir.x) // in (-pi, pi]
-            if (angle > 0)
+            if (angle < 0)
                 dir *= -1
 
-            logd("dir[$i] $dir")
-            // we want the directions to cancel each other
-            //if ()
-            //if (dir.x < -threshold) dir *= -1
-            //else if (dir.y < -threshold) dir *= -1
             direction += dir
             averageP +=s.p1+s.p2
         }
         //val minMaxIdx =
         averageP /= segments.size * 2.0
+        //logd("dir: $direction")
         direction /= direction.norm()
         //we have ||direction|| = 1
 
@@ -179,8 +204,8 @@ class SuperSegment(s: Segment) {
 }
 
 class ProbabilisticLineMergeFragment : BaseSlidersFragment(
-    SliderData("p", default=50, min = 5, max = 150, stepSize =5),
-    SliderData("spacing", default=10, min = 5, max = 100, stepSize =5)
+    SliderData("threshold", default=15, min = 2, max = 60, stepSize =2),
+    //SliderData("spacing", default=10, min = 5, max = 100, stepSize =5)
     //SliderData("i", default=0, min = 0, max = 500, stepSize =1)
     //SliderData("close", default=2, min=0, max=5, stepSize=1)
 ) {
@@ -208,48 +233,47 @@ class ProbabilisticLineMergeFragment : BaseSlidersFragment(
             super.update(args, isFastForward)
             cvtColor(ogMat, previewMat, COLOR_GRAY2RGB)
 
-            val proc = args[0] / 100.0
-            val spacing = args[1].toDouble()
-            //val idx = args[2]
+            val thresh = args[0].toDouble()// / 100.0
+//            val spacing = args[1].toDouble()
+//            val idx = args[2]
             //logd("lines: ${lines.size()}")
-            val area = ogMat.size().area()
-            val omega = PI / (2* area.pow(1 / 4.0))
-            val tDelta = proc * omega
-            val superSegments = ArrayList<SuperSegment>()
-            fun addToSuperSegments(s: Segment, tDelta: Double) {
-                for (ss in superSegments) {
-                    if (ss.checkAndAdd(s, tDelta)) return
+            //val area = ogMat.size().area()
+            //val omega =1/ sqrt(area)//.pow(1 / 2.0)
+            //val tDelta = proc * omega
+            val groups = ArrayList<SegmentGroup>()
+            fun addToSegmentGroups(s: Segment, thresh: Double) {
+                for (g in groups) {
+                    if (g.checkAndAdd(s, thresh)) return
                 }
-                superSegments.add(SuperSegment(s))
+                groups.add(SegmentGroup(s))
             }
             val buf = IntArray(4)
             for (i in 0 until inLines.rows()) {
                 inLines.get(i, 0, buf)
                 val p1 = Point(buf[0].toDouble(), buf[1].toDouble())
                 val p2 = Point(buf[2].toDouble(), buf[3].toDouble())
-                addToSuperSegments(Segment(p1, p2), tDelta)
+                addToSegmentGroups(Segment(p1, p2), thresh)
             }
             //logd("size1 = ${inLines.rows()}")
             //logd("size = ${superSegments.size}")
             segments.clear()
-            for ((i, ss) in superSegments.withIndex()) {
+            for ((i, ss) in groups.withIndex()) {
                 val col = Colors.getNiceColor(i)
-                val col2 = Colors.getNiceColor(i+1)
-                val col3 = Colors.getNiceColor(i+2)
+                //val col2 = Colors.getNiceColor(i+1)
                 /*for (s in ss.segments) {
                     line(previewMat, s.p1, s.p2, col, 3)
                 }*/
-                val points = ss.getPoints(spacing)
+                /*val points = ss.getPoints(spacing)
                 if (!isFastForward) {
                     for (p in points) {
                         circle(previewMat, p, 1, col2, 5)
                     }
-                }
-                val s = ss.mergedSegments() //fitLine2d(points)
+                }*/
+                val s = ss.toSingleSegment() //fitLine2d(points)
                 segments.add(s)
                 //lines.add(line)
                 if (!isFastForward) {
-                    s.drawTo(previewMat, col3, 3)
+                    s.drawTo(previewMat, col, 3)
                 }
             }
         }
