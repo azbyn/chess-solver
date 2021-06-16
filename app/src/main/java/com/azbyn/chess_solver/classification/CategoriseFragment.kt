@@ -75,14 +75,11 @@ class CategoriseFragment : ImageViewFragment() {
         private val inViewModel: SquaresPreviewFragment.VM by viewModelDelegate()
 
         private val boardImage get() = inViewModel.boardImage
-//        private val previewMat = Mat.zeros(boardSize, boardSize, CV_8UC3)
         private var previewMat = Mat.zeros(boardSize, boardSize, CV_8UC4)
-
 
         private var piecesMap = mapOf<Piece, Mat>()
 
         lateinit var result: Board
-//        val result = Array(8) {Array(8) { Piece.Nothing }}
 
         fun fastForward(frag: BaseFragment) {
             init(frag)

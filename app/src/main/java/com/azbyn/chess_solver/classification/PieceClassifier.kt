@@ -102,8 +102,8 @@ fun pieceImageToVector(fullImg: Mat, bounds: BoundsD, imageType: ImageType): Vec
     }
     wrapSquare(fullImg, res, bounds, imageType.squareSize)
 
-//    res.convertTo(res, CV_32F, 1/255.0)
     res.convertTo(res, CV_32F)
-    return Vector(res.reshape(1, 1))// res.rows() * res.cols()))
+
+    return Vector(res.reshape(1, 1))
 }
 

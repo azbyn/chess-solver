@@ -5,15 +5,10 @@ import kotlinx.serialization.Serializable
 import org.opencv.core.Mat
 import kotlin.system.exitProcess
 
-
-//todo addW margin and wo margin?
-//@Serializable
-
-
-
 class Board(private val values: Array<Piece>) {
     constructor(init: (Int, Int) -> Piece):
             this(List(8*8) { i -> init(i% 8, i /8) }.toTypedArray())
+
     operator fun get(x: Int, y: Int) = values[y*8+x]
     val indices get() = List(8*8) { i -> Pair(i% 8, i /8) }
 

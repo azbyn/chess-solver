@@ -7,7 +7,6 @@ import kotlin.math.min
 import kotlin.system.exitProcess
 
 fun trainSmo(settings: SvmSettings, X_: List<Vector>, y_: List<Double>): Svm {
-//    println("smo start")
     val K = settings.K
     val C = settings.C
     val tol = settings.tol
@@ -20,7 +19,6 @@ fun trainSmo(settings: SvmSettings, X_: List<Vector>, y_: List<Double>): Svm {
     var y = y_
 
     fun sum(k: Int): Double {
-//        return kernelSum(X[k], )
         var res = 0.0
         for ((i, ai) in alpha.withIndex()) {
             res += ai * y[i] * K(X[k], X[i])
@@ -115,13 +113,7 @@ fun trainSmo(settings: SvmSettings, X_: List<Vector>, y_: List<Double>): Svm {
         y = newY.toList()
         alpha = newAlpha.toMutableList()
     }
-
-    println("koniec: it $it")
-    println("X: $X")
-    println("y: $y")
-    println("a: $alpha")
-
-
+    
     //pre-multiplied yi*alpha_i
     val weights = List(y.size) { i -> y[i] * alpha[i] }
 

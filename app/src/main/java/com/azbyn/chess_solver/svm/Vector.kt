@@ -36,22 +36,14 @@ object VectorSerializer : KSerializer<Vector> {
 }
 
 @Serializable(with = VectorSerializer::class)
-class Vector(vararg elements: Double
-//    val mat: Mat
-) {
+class Vector(vararg elements: Double) {
     val values: DoubleArray = elements
 
-
-    //TODO check usage (ie don't convert again)
     constructor(mat: Mat): this(*mat.toDoubleArray())
 
     val size get() = values.size
-    // mat.width() * mat.height()
-//    val size get() = mat.width() * mat.height()
-//    constructor(vararg elements: Double): this(MatOfFloat(*elements.map { it.toFloat() }.toFloatArray()).reshape(1, 1))
 
     override fun toString(): String {
-//        val doubles = mat.toFloatArray()
         return values.joinToString(separator = ", ",prefix="{", postfix ="}") { it.toString() }
     }
     operator fun get(i: Int) = values[i]

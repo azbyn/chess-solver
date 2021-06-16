@@ -14,7 +14,6 @@ interface BoardClassifier {
 data class PieceBoardClassifier(
     val black: PieceClassifier, val white: PieceClassifier, val imageType: ImageType
 ):BoardClassifier  {
-    //    constructor(black: T, white: T): this(PieceClassifier(black), PieceClassifier(white))
     override fun classifyAt(x: Int, y: Int, boardImage: BoardImage): Piece {
         val isBlack = Board.isBlackSquare(x, y)
         val classifier = if (isBlack) this.black else this.white
@@ -25,23 +24,6 @@ data class PieceBoardClassifier(
         val res = choices.first()
 
         return res.result
-    }
-}
-
-data class BoardClassifierOnlyIsEmpty(
-    val black: IsEmptyClassifier, val white: IsEmptyClassifier, val imageType: ImageType
-): BoardClassifier {
-    override fun classifyAt(x: Int, y: Int, boardImage: BoardImage): Piece {
-        val isBlack = Board.isBlackSquare(x, y)
-        val classifier = if (isBlack) this.black else this.white
-        val vector = boardImage.getVectorAt(x, y, imageType)
-
-        val res = classifier.isEmptySquare(vector)
-
-        val c = if (isBlack) 'B' else 'W'
-        println("$c $x, $y: $res")
-
-        return if (res) Piece.Nothing else Piece(Piece.Color.White, Piece.Type.Pawn)
     }
 }
 

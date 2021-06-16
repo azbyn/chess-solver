@@ -15,17 +15,12 @@ fun trainSmo2(settings: SvmSettings, X_: List<Vector>, y_: List<Double>): Svm {
     var X = X_
     var alpha = MutableList(y.size) { 0.0 }
     var bias = 0.0
-//    fun kernelSum(x: Vector, alpha: List<Double>, y: List<Double>, X: List<Vector>, K: Kernel = settings.K) {
-//        val Ei: Double = sum_(alpha.*y.*K(x,x(i,:),'l'))-y(i);
-//    }
-
 
     val K = settings.K
     val tol = settings.tol
     val C = settings.C
     while (it++ < settings.maxiter) {
         var changedAlphas = 0
-//        println(alpha)
         for (i in X.indices) {
             val Ei = kernelSum(X[i], X, alpha, y, K) -y[i]
 
@@ -70,28 +65,14 @@ fun trainSmo2(settings: SvmSettings, X_: List<Vector>, y_: List<Double>): Svm {
 
                 val eta = 2 * Kij - Kii * Kjj
 
-//                println("это: $eta")
-                //is that needed?
-//                if (eta>=0)
-//                    continue
-
-
                 alpha[j] += (y[j] * (Ei - Ej)) / eta
 
-//                println("aj = clamp(${alpha[j]}, $L, $H) ")
                 alpha[j] = clamp(alpha[j], L, H)
 
                 if (abs(alpha[j]-oldAj) < tol)
                     continue
 
                 alpha[i] -= y[i]*y[j]*(alpha[j]-oldAi)
-
-//                println("ai ${alpha[i]}")
-//                alpha[i] += y[i]*y[j]*(oldAj-alpha[j])
-
-//                val bi = bias - Ei - y[i]*(alpha[i]-oldAi)*Kii - y(j)*(alpha(j)-aj)*K(X(:,j),X(:,i));
-//                val bj = bias - Ej - y[i]*(alpha[i]-oldAi)*Kij - y(j)*(alpha(j)-aj)*K(X(:,j),X(:,j));
-                //
                 val bi = bias - Ei - y[i]*(alpha[i]-oldAi)* Kii - y[j]*(alpha[j]-oldAj)* Kij
                 val bj = bias - Ej - y[i]*(alpha[i]-oldAi)* Kij - y[j]*(alpha[j]-oldAj)* Kjj
                 bias = if (0.0< alpha[i] && alpha[i] < C) {
@@ -126,16 +107,8 @@ fun trainSmo2(settings: SvmSettings, X_: List<Vector>, y_: List<Double>): Svm {
         alpha = newAlpha.toMutableList()
     }
 
-//    println("koniec: it $it")
-//    println("X: $X")
-//    println("y: $y")
-//    println("a: $alpha")//    println("b: $str")
-
-
     //pre-multiplied yi*alpha_i
     val weights = List(y.size) { i -> y[i] * alpha[i] }
-
-//    println("w: $weights")
 
     fun calculateBias(): Double {
         var res = 0.0

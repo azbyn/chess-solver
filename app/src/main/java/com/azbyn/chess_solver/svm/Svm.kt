@@ -19,10 +19,7 @@ typealias SvmAlgorithm = (settings: SvmSettings, X_: List<Vector>, y_: List<Doub
 
 fun kernelSum(x: Vector, supportVectors: List<Vector>, weights: List<Double>, K: Kernel): Double {
     var res = 0.0
-//    println("<>: ${weights} $K")
-//    println("<>: svms $supportVectors")
     for ((i, xi) in supportVectors.withIndex()) {
-//        println("K ~= ${K(xi, x)}")
         res += weights[i] * K(xi, x)
     }
     return res
@@ -41,7 +38,6 @@ data class ClassificationResult<T>(val result: T, val certainty: Double) {
 }
 
 fun Svm.classify(x: Vector): ClassificationResult<Boolean> {
-//    println("classify: $supportVectors")
     val res = kernelSum(x, this.supportVectors, this.weights, this.K) + bias
 
     return ClassificationResult(res >= 0.0, res)

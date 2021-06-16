@@ -14,12 +14,8 @@ data class OneVsOneSvm(val subSvms: List<SubSvm>, val classes: List<Int>): Multi
             classesTally[c] = 0
 
         for ((c0, c1, svm) in subSvms) {
-//            val cr =subSvm.classify(x)
-            val (isC0, value) = svm.classify(x)//.certainty
-//            println("w: ${svm.weights}")
-//            println("b: ${svm.bias}")
-            val cl = if (isC0) c0 else c1  //if (value >= 0.0) c0 else c1
-//            println("$c0 vs $c1 -> $value, $isC0")
+            val (isC0, _) = svm.classify(x)
+            val cl = if (isC0) c0 else c1
             classesTally[cl] = classesTally[cl]!! + 1
         }
 
@@ -53,22 +49,3 @@ fun trainOVO(settings: SvmSettings, X: List<Vector>, y: List<Int>, algorithm: Sv
     }
     return OneVsOneSvm(subSvms, classes)
 }
-
-// returns a list of results
-// the list is sorted by confidence
-// so the first result is the one we're most certain of
-// fun classifyChoices(x: Vector): List<Int> {
-//    val classesTally = HashMap<Int, Int>()
-//    for (c in this.classes)
-//        classesTally[c] = 0
-//
-//    for ((c0, c1, subSvm) in subSvms) {
-//        val value = subSvm.classify(x).marginDistance
-//        val cl = if (value >= 0.0) c0 else c1
-//        classesTally[cl] = classesTally[cl]!! + 1
-//    }
-//
-//    return classesTally.toList().sortedBy { (_, v) -> v  }
-//        .map { (c, _) -> c }
-//}
-//fun OneVsOneSvm.classify(x: Vector) = classifyChoices(x).first()

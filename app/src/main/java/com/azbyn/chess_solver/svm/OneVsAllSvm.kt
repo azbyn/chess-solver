@@ -8,7 +8,7 @@ data class OneVsAllSvm(val svms: List<Pair<Int, Svm>>): MultiSvm() {
     override fun classifyChoices(x: Vector): List<ClassificationResult<Int>> {
         return svms.map { (cl, svm) ->
             ClassificationResult(cl, svm.classify(x).certainty)
-        }.sortedByDescending { it.certainty }//.map { it.result }
+        }.sortedByDescending { it.certainty }
     }
 }
 
@@ -34,18 +34,3 @@ fun trainOVA(settings: SvmSettings, X: List<Vector>, y: List<Int>, algorithm: Sv
 
     return OneVsAllSvm(List(classes.size) { i -> Pair(classes[i], train1(classes[i])) })
 }
-
-// returns a list of results
-// the list is sorted by confidence
-// so the first result is the one we're most certain of
-//fun OneVsAllSvm.classifyChoices(x: Vector): List<Int> {
-//    return svms.map { (cl, svm) ->
-//        ClassificationResult(cl, svm.classify(x).marginDistance)
-//    }.sortedBy { it.marginDistance }.map { it.result }
-//}
-//fun OneVsAllSvm.classify(x: Vector) = classifyChoices(x).first()
-//fun OneVsAllSvm.classify(x: Vector): ClassificationResult<Int> {
-//    return svms.map { (cl, svm) ->
-//        ClassificationResult(cl, svm.classify(x).marginDistance)
-//    }.maxWithOrNull(compareBy { it.marginDistance })!!
-//}
