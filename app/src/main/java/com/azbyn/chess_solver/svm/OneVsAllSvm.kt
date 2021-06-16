@@ -2,13 +2,13 @@ package com.azbyn.chess_solver.svm
 
 import kotlinx.serialization.Serializable
 
-//TODO REPLACE
+
 @Serializable
 data class OneVsAllSvm(val svms: List<Pair<Int, Svm>>): MultiSvm() {
-    override fun classifyChoices(x: Vector): List<Int> {
+    override fun classifyChoices(x: Vector): List<ClassificationResult<Int>> {
         return svms.map { (cl, svm) ->
-            ClassificationResult(cl, svm.classify(x).marginDistance)
-        }.sortedBy { it.marginDistance }.map { it.result }
+            ClassificationResult(cl, svm.classify(x).certainty)
+        }.sortedByDescending { it.certainty }//.map { it.result }
     }
 }
 

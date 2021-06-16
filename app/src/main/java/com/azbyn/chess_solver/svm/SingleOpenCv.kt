@@ -8,11 +8,6 @@ import org.opencv.ml.Ml
 import org.opencv.ml.SVM
 import kotlin.math.roundToInt
 
-/*
-* BLA
-* pentru viteza mai mare de antrenare putem folosi functiile definite in opencv:
-* */
-
 //fun Mat.toDoubleArray() =  DoubleArray(width()* height()).apply {
 //    this@toDoubleArray.get(0, 0, this)
 //}
@@ -20,17 +15,38 @@ import kotlin.math.roundToInt
 //    this@toFloatArray.get(0, 0, this)
 //}
 
-
 fun trainSingleOpenCv(settings: SvmSettings, X: List<Vector>, y: List<Double>): Svm {
     val svm = SVM.create()
     svm.type = SVM.C_SVC
 //    svm.setType(cv2.ml.SVM_NU_SVC)
-//    svm.setKernel(SVM.LINEAR)
+    when (settings.K) {
+        is Kernel.Gaussian -> {
+            svm.setKernel(SVM.RBF)
+            svm.gamma = settings.K.gamma
+        }
+        Kernel.Linear ->
+            svm.setKernel(SVM.LINEAR)
+        is Kernel.Polynomial -> {
+            svm.setKernel(SVM.RBF)
+            svm.gamma = settings.K.a
+            svm.coef0 = settings.K.c
+            svm.degree = settings.K.d.toDouble()
+        }
+        is Kernel.Sigmoid -> {
+            svm.setKernel(SVM.SIGMOID)
+            svm.gamma = settings.K.gamma
+            svm.coef0 = settings.K.r
+        }
+        is Kernel.Chi2 -> {
+            svm.setKernel(SVM.SIGMOID)
+            svm.gamma = settings.K.gamma
+        }
+    }
 
-    svm.setKernel(SVM.POLY)
-    svm.degree = 1.0
-    svm.coef0 = 0.0
-    svm.gamma = 1.0
+//    svm.setKernel(SVM.POLY)
+//    svm.degree = 1.0
+//    svm.coef0 = 0.0
+//    svm.gamma = 1.0
 
     svm.c = settings.C
     svm.termCriteria = TermCriteria(TermCriteria.MAX_ITER /*and TermCriteria.EPS*/, settings.maxiter, settings.tol)
@@ -57,19 +73,21 @@ fun trainSingleOpenCv(settings: SvmSettings, X: List<Vector>, y: List<Double>): 
 
 //    svm.trainAuto(trainingPoints, Ml.ROW_SAMPLE, trainingCats)
     svm.train(trainingPoints, Ml.ROW_SAMPLE, trainingCats)
-//    println("svm c: ${svm.c}")
+    println("svm c: ${svm.c}")
+    println("svm γ: ${svm.gamma}")
+
 //    svm.train(trainingPoints, ROW_SAMPLE, trainingCats)
 
     val supportVectorMat: Mat = svm.supportVectors
 //    println("sv: ${supportVectorMat.size()}")
     val sv = (0 until supportVectorMat.rows()).map { i ->
-//        println("SVI ${supportVectorMat.row(i)}")
+//        println("SVI ${supportVectorMat.row(i).toDoubleArray().toList()}")
         Vector(supportVectorMat.row(i)) }
 
 
     val alpha = Mat()
-//    val svidx = Mat()
-    val rho = svm.getDecisionFunction(0, alpha, Mat())
+    val svidx = Mat()
+    val rho = svm.getDecisionFunction(0, alpha, svidx)// Mat())
 //    val weigths = svm.alpha
 //    println("weights: ${alpha.size()}, ${alpha.toDoubleArray().toList()}")
 //    println("svidx: ${svidx.size()} ${svidx[0,0].toList()}")

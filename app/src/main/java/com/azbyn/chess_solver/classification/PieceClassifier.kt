@@ -7,28 +7,48 @@ import org.opencv.core.CvType.CV_32F
 import org.opencv.imgproc.Imgproc.*
 import org.opencv.ml.SVM
 
-const val svmSquareSize = 32
-const val svmUseMargins = false
-//const val useMargins = true
 
 //TODO
 //TRY deskew https://docs.opencv.org/master/dd/d3b/tutorial_py_svm_opencv.html
 
-@Serializable
-data class PieceClassifier<Impl: MultiSvm>(val multiSvm: Impl)
+interface PieceClassifier {
+    fun classifyChoices(x: Vector): List<ClassificationResult<Piece>>
 
-//    fun toPieceResult(res: ClassificationResult<Int>): ClassificationResult<Piece> {
-//        val (cl, value) = res
-//        return ClassificationResult(Piece.fromClass(cl), value)
-//    }
-fun PieceClassifier<OpenCvSvm>.writeTo(path: String) {
+    fun classify(x: Vector): ClassificationResult<Piece> = classifyChoices(x).first()
+
+}
+
+@Serializable
+data class SvmPieceClassifier<Impl: MultiSvm>(val multiSvm: Impl) : PieceClassifier {
+    override fun classifyChoices(x: Vector): List<ClassificationResult<Piece>> =
+        multiSvm.classifyChoices(x).map(::toPieceResult)
+}
+
+@Serializable
+data class PieceClassifierWithIsEmpty(
+    val svmClassifier: PieceClassifier,
+    val isEmptyClassifier: IsEmptyClassifier
+) : PieceClassifier {
+    override fun classifyChoices(x: Vector): List<ClassificationResult<Piece>> {
+        val isEmpty = isEmptyClassifier.isEmptySquare(x)
+        if (isEmpty) return listOf(ClassificationResult(Piece.Nothing, 1.0))
+        return svmClassifier.classifyChoices(x)
+    }
+}
+
+
+fun toPieceResult(res: ClassificationResult<Int>): ClassificationResult<Piece> {
+    val (cl, certainty) = res
+    return ClassificationResult(Piece.fromClass(cl), certainty)
+}
+fun SvmPieceClassifier<OpenCvSvm>.writeTo(path: String) {
     multiSvm.svm.save(path)
 }
 
 
 
-fun pieceClassifierFromFile(path: String): PieceClassifier<OpenCvSvm> {
-    return PieceClassifier(OpenCvSvm(SVM.load(path)))
+fun pieceClassifierFromFile(path: String): SvmPieceClassifier<OpenCvSvm> {
+    return SvmPieceClassifier(OpenCvSvm(SVM.load(path)))
 }
 
 //TODO y: list piece?
@@ -38,22 +58,19 @@ fun pieceClassifierFromFile(path: String): PieceClassifier<OpenCvSvm> {
 //}
 //
 
-fun <T: MultiSvm> PieceClassifier<T>.classifyChoices(x: Vector): List<Piece> =
-    multiSvm.classifyChoices(x).map(Piece.Companion::fromClass)
 
-fun <T: MultiSvm> PieceClassifier<T>.classify(x: Vector): Piece = Piece.fromClass(multiSvm.classify(x))
 
-private const val squareSizeD = svmSquareSize.toDouble()
-private val dst = MatOfPoint2f(
-    Point(0.0, 0.0),
-    Point(squareSizeD, 0.0),
-    Point(squareSizeD, squareSizeD),
-    Point(0.0, squareSizeD)
-)
 
 data class BoundsD(val x0: Double, val y0: Double, val x1: Double, val y1: Double)
 
-fun wrapSquareNoMargins(fullImg: Mat, result: Mat, bounds: BoundsD) {
+fun wrapSquareNoMargins(fullImg: Mat, result: Mat, bounds: BoundsD, squareSize: Int) {
+    val squareSizeD = squareSize.toDouble()
+    val dst = MatOfPoint2f(
+        Point(0.0, 0.0),
+        Point(squareSizeD, 0.0),
+        Point(squareSizeD, squareSizeD),
+        Point(0.0, squareSizeD)
+    )
     val src = MatOfPoint2f(
         Point(bounds.x0, bounds.y0),
         Point(bounds.x1, bounds.y0),
@@ -66,7 +83,7 @@ fun wrapSquareNoMargins(fullImg: Mat, result: Mat, bounds: BoundsD) {
     //warpAffine(baseMat, previewMat, m, Size(squareSize, squareSize))
     warpPerspective(fullImg, result, m, Size(squareSizeD, squareSizeD))
 }
-private fun wrapSquareWithMargins(fullImg: Mat, result: Mat, bounds: BoundsD) {
+internal fun wrapSquareWithMargins(fullImg: Mat, result: Mat, bounds: BoundsD, squareSize: Int) {
     val dx = (bounds.x1 - bounds.x0)/2
     val dy = (bounds.y1 - bounds.y0)/2
     wrapSquareNoMargins(fullImg, result, BoundsD(
@@ -74,16 +91,17 @@ private fun wrapSquareWithMargins(fullImg: Mat, result: Mat, bounds: BoundsD) {
         x1 = bounds.x1 + dx,
         y0 = bounds.y0 - dy,
         y1 = bounds.y1 + dy
-    ))
+    ), squareSize)
 }
 
-
-val wrapSquare = if (svmUseMargins) ::wrapSquareWithMargins else ::wrapSquareNoMargins
-
-
-fun pieceImageToVector(fullImg: Mat, bounds: BoundsD): Vector {
+fun pieceImageToVector(fullImg: Mat, bounds: BoundsD, imageType: ImageType): Vector {
     val res = Mat()
-    wrapSquare(fullImg, res, bounds)
+    val wrapSquare = when (imageType.useMargins) {
+        MarginType.NoMargin -> ::wrapSquareNoMargins
+        MarginType.UseMargin -> ::wrapSquareNoMargins
+    }
+    wrapSquare(fullImg, res, bounds, imageType.squareSize)
+
 //    res.convertTo(res, CV_32F, 1/255.0)
     res.convertTo(res, CV_32F)
     return Vector(res.reshape(1, 1))// res.rows() * res.cols()))

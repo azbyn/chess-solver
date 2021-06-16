@@ -69,6 +69,8 @@ class Vector(vararg elements: Double
     }
 }
 
+fun Vector.withIndex() = this.values.withIndex()
+
 //typealias Vector = Mat
 
 fun dot(x: Vector, y: Vector): Double {

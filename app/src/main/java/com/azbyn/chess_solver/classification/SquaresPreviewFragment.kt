@@ -38,7 +38,7 @@ class SquaresPreviewFragment : BaseSlidersFragment(
             val x = i % 8
             val y = i / 8
             val bounds = boardImage.getPieceBounds(x, y)
-            wrapSquare(fullMat, previewMat, bounds)
+            wrapSquareWithMargins(fullMat, previewMat, bounds, 32)
         }
 
         override fun update(frag: ImageViewFragment, p: IntArray) {

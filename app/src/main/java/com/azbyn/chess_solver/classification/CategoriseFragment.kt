@@ -1,5 +1,6 @@
 package com.azbyn.chess_solver.classification
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -8,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.azbyn.chess_solver.*
+import com.azbyn.chess_solver.svm.MultiSvm
 import com.azbyn.chess_solver.svm.OneVsOneSvm
 import com.azbyn.chess_solver.svm.OpenCvSvm
 import kotlinx.android.synthetic.main.categorise.*
@@ -20,11 +22,11 @@ import org.opencv.core.CvType.CV_8UC4
 import org.opencv.core.Mat
 import org.opencv.core.Rect
 import org.opencv.imgproc.Imgproc.rectangle
+import org.opencv.ml.SVM
 import java.io.File
 
 
 //typealias MultiSvmKind = OneVsOneSvm
-typealias MultiSvmKind = OpenCvSvm
 
 class CategoriseFragment : ImageViewFragment() {
     override fun getImageView(): ZoomableImageView = imageView!!
@@ -69,7 +71,7 @@ class CategoriseFragment : ImageViewFragment() {
 
     class VM : BaseViewModel() {
 
-        private lateinit var boardClassifier: BoardClassifier<MultiSvmKind>
+        private lateinit var boardClassifier: BoardClassifier
         private val inViewModel: SquaresPreviewFragment.VM by viewModelDelegate()
 
         private val boardImage get() = inViewModel.boardImage
@@ -87,28 +89,67 @@ class CategoriseFragment : ImageViewFragment() {
             update()
         }
 
-        fun readPieceClassifier(ctx: MainActivity, relpath: String): PieceClassifier<OpenCvSvm> {
+
+        private fun readMultiSvm(ctx: MainActivity, relpath: String): MultiSvm {
+            val inStream = ctx.assets.open(relpath)
+            val file = File("${ctx.path}/$relpath")
+            file.outputStream().use { inStream.copyTo(it) }
+            logd("path: ${file.path}, ${file.readText().substring(10)}")
+
+            return OpenCvSvm(SVM.load(file.path))
+        }
+        /*private fun readMultiSvm(ctx: MainActivity, relpath: String): MultiSvm {
+            return readFromJsonCtx<OneVsOneSvm>(ctx, relpath)
+        }*/
+/*
+        fun readPieceClassifier(ctx: MainActivity, relpath: String): PieceClassifier {
             val inStream = ctx.assets.open(relpath)
             val file = File("${ctx.path}/$relpath")
             file.outputStream().use { inStream.copyTo(it) }
 
             return pieceClassifierFromFile(file.path)
-        }
-        val suffix = "_$svmSquareSize"+ (if (svmUseMargins) "_wM" else "_noM")
+        }*/
 
-        private fun readBoard(ctx: MainActivity): BoardClassifier<MultiSvmKind> {
+        private inline fun <reified T> readFromJsonCtx(ctx: Context, path: String): T {
+            val str = ctx.assets.open(path).reader().readText()
+
+            return Json.decodeFromString<T>(string = str)
+        }
+        private fun readDualClassifier(mType: ImageType, eType: ImageType, ctx: MainActivity): DoubleBoardClassifier {
+            fun readWB(col: String): ClassifierWithIsEmpty {
+//                val eStr = ctx.assets.open("${col}e${eType.suffix}").reader().readText()
+
+                val eSvm = readFromJsonCtx<IsEmptyClassifier>(ctx, "${col}e${eType.suffix}")
+//                val mSvm = MultiSvm.readFromFile("${col}m${mType.suffix}")
+                val mSvm = readMultiSvm(ctx, "${col}m${mType.suffix}")
+
+                return ClassifierWithIsEmpty(eSvm=eSvm, mSvm = mSvm)
+            }
+
+            return DoubleBoardClassifier(
+                white=readWB("w"), black = readWB("b"),
+                emptyImageType = eType,
+                multiImageType = mType)
+        }
+
+        /*
+        private fun readBoard(ctx: MainActivity): BoardClassifier {
             val str = ctx.assets.open("board$suffix").reader().readText()
 //            val str = File("${ctx.path}/$relpath/board$suffix").readText()
-            return Json.decodeFromString<BoardClassifier<MultiSvmKind>>(string = str)
-        }
+            return Json.decodeFromString<BoardClassifier>(string = str)
+        }*/
 
         private fun initClassifier(ctx: MainActivity) {
 //            boardClassifier = readBoard(ctx)
 
-            boardClassifier = BoardClassifier(
+            val mType = ImageType(24, MarginType.UseMargin)
+
+//            val mType = ImageType(32, MarginType.UseMargin)
+            val eType = ImageType(24, MarginType.NoMargin)
+            boardClassifier = readDualClassifier(mType, eType, ctx) /*BoardClassifier(
                 white=readPieceClassifier(ctx, "white_classifier$suffix"),
                 black=readPieceClassifier(ctx, "black_classifier$suffix"))
-
+*/
         }
 
         private fun initPieces(ctx: MainActivity) {

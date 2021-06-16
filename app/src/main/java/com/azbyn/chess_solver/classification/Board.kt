@@ -3,13 +3,13 @@ package com.azbyn.chess_solver.classification
 import com.azbyn.chess_solver.svm.MultiSvm
 import kotlinx.serialization.Serializable
 import org.opencv.core.Mat
+import kotlin.system.exitProcess
 
 
 //todo addW margin and wo margin?
-@Serializable
-data class BoardClassifier<T: MultiSvm>(val black: PieceClassifier<T>, val white: PieceClassifier<T>) {
-    constructor(black: T, white: T): this(PieceClassifier(black), PieceClassifier(white))
-}
+//@Serializable
+
+
 
 class Board(private val values: Array<Piece>) {
     constructor(init: (Int, Int) -> Piece):
@@ -34,19 +34,6 @@ class BoardImage(val mat: Mat, private val xCoords: DoubleArray, private val yCo
         x1 = xCoords[x+1],
         y1 = yCoords[y+1])
 
-    fun getVectorAt(x: Int, y: Int) = pieceImageToVector(mat, getPieceBounds(x, y))
-}
-
-fun <T: MultiSvm> BoardClassifier<T>.classify(boardImage: BoardImage): Board {
-    return Board { x, y ->
-        val classifier = if (Board.isBlackSquare(x, y)) this.black else this.white
-        val vector = boardImage.getVectorAt(x, y)
-        val res = classifier.classify(vector)
-
-        /*
-        if (!res.isNothing)
-           logd("[$x, $y]: bl ${if (Board.isBlackSquare(x, y)) "b" else "w"} $res")
-         */
-        return@Board res
-    }
+    fun getVectorAt(x: Int, y: Int, imageType: ImageType) =
+        pieceImageToVector(mat, getPieceBounds(x, y), imageType)
 }

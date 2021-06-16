@@ -8,19 +8,23 @@ data class OneVsOneSvm(val subSvms: List<SubSvm>, val classes: List<Int>): Multi
     @Serializable
     data class SubSvm(val class0: Int, val class1: Int, val svm: Svm)
 
-    override fun classifyChoices(x: Vector): List<Int> {
+    override fun classifyChoices(x: Vector): List<ClassificationResult<Int>> {
         val classesTally = HashMap<Int, Int>()
         for (c in this.classes)
             classesTally[c] = 0
 
-        for ((c0, c1, subSvm) in subSvms) {
-            val value = subSvm.classify(x).marginDistance
-            val cl = if (value >= 0.0) c0 else c1
+        for ((c0, c1, svm) in subSvms) {
+//            val cr =subSvm.classify(x)
+            val (isC0, value) = svm.classify(x)//.certainty
+//            println("w: ${svm.weights}")
+//            println("b: ${svm.bias}")
+            val cl = if (isC0) c0 else c1  //if (value >= 0.0) c0 else c1
+//            println("$c0 vs $c1 -> $value, $isC0")
             classesTally[cl] = classesTally[cl]!! + 1
         }
 
-        return classesTally.toList().sortedBy { (_, v) -> v  }
-            .map { (c, _) -> c }
+        return classesTally.toList().sortedByDescending { (_, v) -> v  }
+            .map { (c, count) -> ClassificationResult(c, certainty =count.toDouble()) }
     }
 }
 
