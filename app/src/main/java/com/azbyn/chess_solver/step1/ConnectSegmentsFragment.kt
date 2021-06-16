@@ -13,7 +13,7 @@ class ConnectSegmentsFragment : BaseSlidersFragment(
     SliderData("radius", default=AcceptFragment.VM.convertLength(50), min = 5, max = 200, stepSize =5),
     SliderData("angle δ", default=20, min=5, max=90, stepSize=5),
 //    SliderData("spacing", default=10, min = 5, max = 100, stepSize =5)
-    SliderData("i", default=0, min = 0, max = 500, stepSize =1)
+    SliderData("i", default=0, min =5000, max = 500, stepSize =1)
 ) {
     override val viewModel: VM by viewModelDelegate()
     override val topBarName: String get() = "Connect Segments"
@@ -51,12 +51,12 @@ class ConnectSegmentsFragment : BaseSlidersFragment(
         }
 
         data class SegmentPointIndex(val segIdx: Int, val pointIdx: Int)
-        class Connection(a: SegmentPointIndex,
-                         b: SegmentPointIndex,
-                         val intersection: Point) {
+        data class Connection(val a: SegmentPointIndex,
+                              val b: SegmentPointIndex,
+                              val intersection: Point) {
             val spis = arrayOf(a, b)
-            val a get() = spis[0]
-            val b get() = spis[1]
+            //val a get() = spis[0]
+            //val b get() = spis[1]
             /*
             fun getIntersection(segments: ArrayList<Segment>): Point {
                 val l1 = segments[a.segIdx].line

@@ -12,6 +12,8 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.azbyn.chess_solver.Misc.logd
 import com.azbyn.chess_solver.capture.CaptureFragment
+import com.azbyn.chess_solver.classification.CategoriseFragment
+import com.azbyn.chess_solver.classification.SquaresPreviewFragment
 import com.azbyn.chess_solver.step1.*
 import com.azbyn.chess_solver.step2.*
 import com.azbyn.chess_solver.crop.CropFragment
@@ -40,28 +42,13 @@ enum class FragmentIndex(private val clazz: Class<*>) {
     ROTATE(RotateFragment::class.java),
     CROP(CropFragment::class.java),
 
-//
-//    SELECT_ROI(SelectRoiFragment::class.java),
-    //BLUR_ROI(BlurRoiFragment::class.java),
-//    EDIT_THRESHOLD_MAX(EditThresholdMaxFragment::class.java),
-//    EDIT_THRESHOLD_MIN(EditThresholdMinFragment::class.java),
-//    GRID_MORPHOLOGICAL(GridMorphologicalFragment::class.java),
-//    EDIT_LINES(EditLinesFragment::class.java),
-//    SUPER_LINES(SuperLinesFragment::class.java),
-//    SELECT_DENSITY(SelectDensityFragment::class.java),
-//
-//    ACCEPT_DENSITY(AcceptDensityFragment::class.java),
     BLUR(BlurFragment::class.java),
-    //THRESHOLD(ThresholdFragment::class.java),
-    //MORPHOLOGICAL(MorphologicalFragment::class.java),
     EDGE(EdgeFragment::class.java),
-    //LINE(LineFragment::class.java),
 
     PROBABILISTIC_LINE(ProbabilisticLineFragment::class.java),
     PROBABILISTIC_LINE_MERGE(ProbabilisticLineMergeFragment::class.java),
     CONNECT_SEGMENTS(ConnectSegmentsFragment::class.java),
     FIND_BOARD(FindBoardFragment::class.java),
-
 
     EDIT_SQUARE(EditSquareFragment::class.java),
     PERSPECTIVE(PerspectiveFragment::class.java),
@@ -71,38 +58,14 @@ enum class FragmentIndex(private val clazz: Class<*>) {
 
     LINE_MERGE2(LineMerge2Fragment::class.java),
 
-
-
-//    DILATE(DilateFragment::class.java),
-//    CONTOURS(ContoursFragment::class.java),
-//
-//    SMALL_SQUARES(SmallSquaresFragment::class.java),
     ORIENTATION(OrientationFragment::class.java),
-//
     SQUARES_PREVIEW(SquaresPreviewFragment::class.java),
 
     CATEGORISE(CategoriseFragment::class.java),
 
-    // TODO cleanup stuff (remove the files also)
-
-
-    //CONTOURS(ContoursFragment::class.java),
-    //SUPER_QUADS(SuperQuadsFragment::class.java),
-    //SUPER_QUADS_MERGE(SuperQuadsMergeFragment::class.java),
-    //FINALIZE_GRID(FinalizeGridFragment::class.java),
-
-    //LINE(LineFragment::class.java),
-//    LINES(LinesFragment::class.java),
-//    SUPER_LINES_MK2(SuperLinesMk2Fragment::class.java),
-//    LINES_MASK(LinesMaskFragment::class.java),
-//    REMOVE_LINES(RemoveLinesFragment::class.java),
-//    // end skipped
-//    BLOB_MASK1(BlobMask1Fragment::class.java),
-//    BLOB_MASK2(BlobMask2Fragment::class.java),
-//    BLOBBING(BlobbingFragment::class.java),
-//
     RESULT(ResultFragment::class.java)
     ;
+
     fun newInstance(): BaseFragment = clazz.newInstance() as BaseFragment
     fun prev() : FragmentIndex {
         return if (ordinal == 0) this
@@ -183,11 +146,10 @@ class FragmentManagerAdapter(
     private var pendingFastForward = false
 
     fun fastForwardFromToImpl(from: FragmentIndex, to: FragmentIndex, msg: String="Done in"): Boolean {
-        //logd("pending? $pendingFastForward")
         if (pendingFastForward) return false
         if (from == to) return false
         pendingFastForward = true
-        //logd("skip")
+
         // here the exact fragment doesn't matter,
         // we care just that it's initialised
         val frag = currentFragment!!
@@ -202,23 +164,20 @@ class FragmentManagerAdapter(
                         pendingFastForward = false
                         setCurrent(fi, isOnBack=false)
 
-                        return true// break
+                        return true
                     }
                     fi = f.nextFragment
                 }
             }
-            //after()
             logd("$msg ${t}s.")
             frag.showToast("$msg ${t}s.")
 
         }
         pendingFastForward = false
         return false
-        //logd("finish")
     }
     fun fastForwardTo(to: FragmentIndex, msg: String = "Done in") {
         if (fastForwardFromToImpl(currentIndex, to, msg)) return
-//        logd("лиза!")
 
         setCurrent(to, isOnBack=false)
     }

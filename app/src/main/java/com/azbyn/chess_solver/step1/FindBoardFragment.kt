@@ -1,12 +1,10 @@
 package com.azbyn.chess_solver.step1
 
-import android.util.Log
 import com.azbyn.chess_solver.*
-import com.azbyn.chess_solver.quad.PointQuad
+import com.azbyn.chess_solver.step1.PointQuad
 import com.azbyn.chess_solver.step1.ConnectSegmentsFragment.VM.Connection
 import com.azbyn.chess_solver.step1.ConnectSegmentsFragment.VM.SegmentPointIndex
 import org.opencv.core.Mat
-import org.opencv.core.Point
 import org.opencv.imgproc.Imgproc.COLOR_GRAY2RGB
 import org.opencv.imgproc.Imgproc.cvtColor
 import kotlin.math.min
@@ -39,7 +37,7 @@ class FindBoardFragment : BaseSlidersFragment(
             remainingIters = 10
             generateQuads()
         }
-        class ConnectionQuad(val connIndices: Array<Int>, val quad: PointQuad)
+        class ConnectionQuad(val quad: PointQuad)
 
         private val /*allQuads*/ connectionQuads = arrayListOf<ConnectionQuad>()
         private fun generateQuads() {
@@ -88,7 +86,6 @@ class FindBoardFragment : BaseSlidersFragment(
 
         private fun segmentBuffersToPoints(ci: ArrayList<ConnectionIdx>): ConnectionQuad { // Array<Point> {
             return ConnectionQuad(
-                ci.map { it.connIdx }.toTypedArray(),
                 PointQuad { ci[it].connection(connections).intersection })
 //            return Array(4) { seg[it].second.getIntersection(segments) }
         }
@@ -96,7 +93,6 @@ class FindBoardFragment : BaseSlidersFragment(
         data class ConnectionIdx(/*val spi: SegmentPointIndex, */val connIdx: Int) {
             fun connection(connections: ArrayList<Connection>) = connections[connIdx]
         }
-
 
         private fun impl(arrayOfRes: ArrayList<ConnectionQuad>,
                          level: Int = 0,
@@ -148,10 +144,9 @@ class FindBoardFragment : BaseSlidersFragment(
 //                        return
 //                    }
                     if (completedSegmentsIndices.any { it == spi.segIdx }) {
-//                        log("already there - ${spi.segIdx}")
+                        log("already there - ${spi.segIdx}")
                         return false
                     }
-
                     log("checking $connIdx -> $spi")
                     for (b in buffer) {
                         for (spi2 in b.connection(connections).spis) {
@@ -210,7 +205,7 @@ class FindBoardFragment : BaseSlidersFragment(
             val res = connectionQuads
             if (res.isEmpty()) {
                 //if (redo(-10)) {
-                //we'll solve this latecr - in EditSquareFragment
+                //we'll solve this later - in EditSquareFragment
                 cvtColor(ogMat, previewMat, COLOR_GRAY2RGB)
                 //}
             } else {

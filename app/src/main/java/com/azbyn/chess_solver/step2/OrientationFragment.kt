@@ -6,6 +6,7 @@ import org.json.JSONObject
 import org.opencv.core.Core.*
 import org.opencv.core.Mat
 import org.opencv.core.Point
+import org.opencv.imgcodecs.Imgcodecs.imwrite
 import org.opencv.imgproc.Imgproc.*
 import kotlin.math.abs
 
@@ -15,6 +16,10 @@ class OrientationFragment : BaseSlidersFragment(
     ) {
     override val viewModel: VM by viewModelDelegate()
     override val topBarName: String get() = "Orientation"
+    override fun saveData(path: String): JSONObject {
+        imwrite("$path/table.png", viewModel.resultMat)
+        return super.saveData(path)
+    }
 
     class VM : SlidersViewModel() {
 //        private val inViewModel: SmallSquaresFragment.VM by viewModelDelegate()
@@ -122,7 +127,7 @@ class OrientationFragment : BaseSlidersFragment(
                         val rect = getRect(i, j, xCoords, yCoords)
 
                         val average = mean(/*baseMat*/resultMat.submat(rect))[0]
-                        logd("mean[$i, $j]: $average")
+                        //logd("mean[$i, $j]: $average")
                         if (average < cutoff) {
                             val col = if ((i+j)%2==0) Colors.red else Colors.green
                             rectangle(previewMat, rect, col, -1)

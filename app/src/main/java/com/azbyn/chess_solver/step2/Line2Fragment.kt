@@ -1,7 +1,6 @@
 package com.azbyn.chess_solver.step2
 
 import com.azbyn.chess_solver.*
-import com.azbyn.chess_solver.step1.Line
 import com.azbyn.chess_solver.step1.PerspectiveFragment
 import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc.*
@@ -21,8 +20,8 @@ class Line2Fragment : BaseSlidersFragment(
         private val baseMat get() = inViewModel.resultMat
         private val ogMat get() = getViewModel<PerspectiveFragment.VM>().resultMat
         private var previewMat = Mat()
-        val horiLines = arrayListOf<Line>()
-        val vertLines = arrayListOf<Line>()
+        val horiLines = arrayListOf<HesseLine>()
+        val vertLines = arrayListOf<HesseLine>()
 
         //var resultMat = Mat()
         //    private set
@@ -57,7 +56,7 @@ class Line2Fragment : BaseSlidersFragment(
 
             for (i in 0 until lines.rows() step 2) {
                 val buf = lines.get(i, 0)
-                val line = Line(rho=buf[0], theta=buf[1])
+                val line = HesseLine(rho=buf[0], theta=buf[1])
 //                logd("angle ${line.theta} - ${line.theta.toDeg()} - ${line.theta.toRad()}")
                 val col = when {
                     line.theta < angle || line.theta > PI - angle -> {

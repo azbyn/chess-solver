@@ -1,8 +1,6 @@
 package com.azbyn.chess_solver
 
-import org.opencv.core.MatOfFloat
 import org.opencv.core.MatOfPoint
-import org.opencv.core.MatOfPoint2f
 import org.opencv.core.Point
 
 
