@@ -8,7 +8,6 @@ import org.opencv.ml.Ml
 import org.opencv.ml.SVM
 import kotlin.math.roundToInt
 
-
 fun trainSingleOpenCv(settings: SvmSettings, X: List<Vector>, y: List<Double>): Svm {
     val svm = SVM.create()
     svm.type = SVM.C_SVC

@@ -25,7 +25,7 @@ import org.opencv.imgproc.Imgproc.cvtColor
 
 class CaptureFragment : CaptureFragmentBase() {
     @Suppress("UNUSED_PARAMETER")
-    private fun logd(s: String) = Unit// Misc.logd(s, offset = 1)
+    private fun logd(s: String) = Unit
     //private fun logd(s: String) = Misc.logd(s, offset = 1)
 
     class VM : DumbViewModel() {
@@ -36,7 +36,7 @@ class CaptureFragment : CaptureFragmentBase() {
 //            private set
         var timestamp = ""
             private set
-        private val formater = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", TIME_LOCALE)
+        private val formatter = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", TIME_LOCALE)
         //private var lastFile: File? = null
         //var flashEnabled = false//true
 
@@ -66,13 +66,12 @@ class CaptureFragment : CaptureFragmentBase() {
             val f = File(mainActivity.path, "last.txt")
             f.writeText("$timestamp/$IMAGE_FILE_NAME")*/
         }
-        fun timestampNow(): String = formater.format(Calendar.getInstance().time)
+        fun timestampNow(): String = formatter.format(Calendar.getInstance().time)
         fun setTimeStampNow() {
             timestamp = timestampNow()
         }
 
         fun fromImage(img: Image, rotation: Int) {
-            logd("Oida, fromImage")
             setTimeStampNow()
 
             // this is very fast but it's not true grayscale (1/3 R, 1/3 G, 1/3 B)
@@ -106,16 +105,6 @@ class CaptureFragment : CaptureFragmentBase() {
         }
 
         fun fromPath(frag: CaptureFragment): Boolean {
-            /*
-            logd("Oida, fromPath $lastFile")
-            lastFile ?: return false
-            if (!lastFile!!.exists()) {
-                frag.loge("File '${lastFile!!.path}' not found")
-                return false
-            }
-            timestamp = formater.format(Date(lastFile!!.lastModified()))
-             */
-
             val str = frag.getSelectedString()
             var path = "${frag.mainActivity.path}/$str"
             val idx = str.indexOf('/')
@@ -126,11 +115,6 @@ class CaptureFragment : CaptureFragmentBase() {
                 logd("we can use '$path2'")
                 path = path2
             }
-            //            logd("1: ${"blah/bla".split("/")}")
-//            logd("2: ${"blah/".split("/")}")
-//            logd("3: ${"blah".split("/")}")
-
-
             mat = imread(path, IMREAD_GRAYSCALE)
             logd("path: $path - timestamp: '$timestamp', sz= ${mat.size()}")
             return true
@@ -143,16 +127,12 @@ class CaptureFragment : CaptureFragmentBase() {
 
     override fun onOK() {
         getViewModel<AcceptFragment.VM>().clearHistory()
-        //viewModel.flashEnabled = flashEnabled
         super.onOK()
     }
 
     override val nextFragment = FragmentIndex.ACCEPT
 
     private val viewModel: VM by viewModelDelegate()
-
-    //private lateinit var sensorManager : SensorManager
-    //private var rotSensor: Sensor? = null
 
     private var toast: Toast? = null
     private var time: Long = 0
@@ -161,7 +141,6 @@ class CaptureFragment : CaptureFragmentBase() {
 
     private var files = arrayListOf<String>()
     private fun getFiles(): ArrayList<String> {
-       // logi("GET FILES()")
         val dir = File(mainActivity.path)
         val subFiles = dir.listFiles()
         val res = arrayListOf<String>()
@@ -180,13 +159,6 @@ class CaptureFragment : CaptureFragmentBase() {
 
     override fun onCreateView(i: LayoutInflater, container: ViewGroup?, b: Bundle?): View?
             = i.inflate(R.layout.capture, container, false)
-
- /*   override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        //sensorManager = mainActivity.getSystemService(SENSOR_SERVICE) as SensorManager
-        //rotSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
-    }*/
 
     override fun onImageAvailable(it: ImageReader) {
         logd("onImageAvailable $mainActivity")
@@ -228,7 +200,6 @@ class CaptureFragment : CaptureFragmentBase() {
             files)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         dropdown.adapter = adapter
-        //dropdown.setSelection(0)
     }
     override fun initImpl(isOnBack: Boolean) {
         super.initImpl(isOnBack)
@@ -253,9 +224,7 @@ class CaptureFragment : CaptureFragmentBase() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        //logd("CREATED CaptureFragment")
         picture.setOnClickListener { takePicture() }
-        //calibrate.setOnClickListener { angleIndicator.calibrate() }
         useSaved.setOnClickListener {
             if (!viewModel.fromPath(this)) {
                 setUseSavedColor(false)
@@ -263,26 +232,7 @@ class CaptureFragment : CaptureFragmentBase() {
                 onOK()
             }
         }
-        /*
-        flash.setOnClickListener {
-            val enabled = toggleFlash()
-            flash.setImageResource(
-                if (enabled) R.drawable.ic_flash_auto
-                else R.drawable.ic_flash_off)
-        }
-         */
-        /*
-        rotSensor.also { sensor ->
-            sensorManager.registerListener(angleIndicator,
-                sensor, SensorManager.SENSOR_DELAY_NORMAL)
-        }*/
     }
-/*
-    override fun onDestroyView() {
-        super.onDestroyView()
-        //logd("destroyed CaptureFragment")
-        sensorManager.unregisterListener(angleIndicator)
-    }*/
 
     override fun takePicture() {
         time = currentTimeMillis()

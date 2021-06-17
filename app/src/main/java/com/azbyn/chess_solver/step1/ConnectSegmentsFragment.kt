@@ -13,7 +13,6 @@ class ConnectSegmentsFragment : BaseSlidersFragment(
     SliderData("radius", default=AcceptFragment.VM.convertLength(50), min = 5, max = 200, stepSize =5),
     SliderData("angle δ", default=20, min=5, max=90, stepSize=5),
 //    SliderData("spacing", default=10, min = 5, max = 100, stepSize =5)
-    SliderData("i", default=0, min =5000, max = 500, stepSize =1)
 ) {
     override val viewModel: VM by viewModelDelegate()
     override val topBarName: String get() = "Connect Segments"
@@ -55,27 +54,6 @@ class ConnectSegmentsFragment : BaseSlidersFragment(
                               val b: SegmentPointIndex,
                               val intersection: Point) {
             val spis = arrayOf(a, b)
-            //val a get() = spis[0]
-            //val b get() = spis[1]
-            /*
-            fun getIntersection(segments: ArrayList<Segment>): Point {
-                val l1 = segments[a.segIdx].line
-                val l2 = segments[b.segIdx].line
-                val res = l1.intersect(l2)
-
-                return if (res == null) {
-                    logw("well, this is weird: intersection == null")
-                    getDumbCenter(segments)
-                } else {
-                    res
-                }
-            }
-            fun getDumbCenter(segments: ArrayList<Segment>): Point {
-                val p1 = segments[a.segIdx].points[a.pointIdx]
-                val p2 = segments[b.segIdx].points[b.pointIdx]
-
-                return (p1+p2)/2
-            }*/
         }
 
         val connections = arrayListOf<Connection>()
@@ -182,8 +160,8 @@ class ConnectSegmentsFragment : BaseSlidersFragment(
                     connections.size > 35 -> redo(30, isFastForward = isFastForward, isLocalRedo=true)
 
                     else -> {
-                        if (!isFastForward)
-                            drawToPreview(args[2], radius.toInt())
+//                        if (!isFastForward)
+//                            drawToPreview(args[2], radius.toInt())
                     }
                 }
             }

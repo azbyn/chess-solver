@@ -29,11 +29,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() = fragmentManager.onBack()
 
-
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        setContentView(R.layout.main_activity)
-//    }
     companion object {
         init {
             if (!OpenCVLoader.initDebug()) {

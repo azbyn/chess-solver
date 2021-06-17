@@ -28,12 +28,10 @@ class ResultFragment : ImageViewFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        //logd("Accept.onViewCreated")
         back.setOnClickListener { onBack() }
         newPhoto.setOnClickListener { onOK() }
         wasGood.setOnClickListener {
             wasGood.isChecked = !wasGood.isChecked
-            //viewModel.update(this, autoRotate.isChecked)
         }
         save.setOnClickListener { onSave() }
     }
@@ -79,7 +77,7 @@ class ResultFragment : ImageViewFragment() {
                 }
                 File(dir, "data.json").writeText(json.toString(4))
                 logd("$timestamp ${json.toString(4)}")
-                logd("pæθ: {$path}")
+                logd("path: {$path}")
                 cf.saveLast(mainActivity)
             }
         }

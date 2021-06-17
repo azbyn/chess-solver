@@ -1,11 +1,13 @@
 package com.azbyn.chess_solver.rotate
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import com.azbyn.chess_solver.*
+import com.azbyn.chess_solver.Misc.logd
 import kotlinx.android.synthetic.main.rotate.*
 import org.json.JSONObject
 
@@ -27,7 +29,8 @@ class RotateFragment : ImageViewFragment() {
         back.setOnClickListener { onBack() }
         reset.setOnClickListener { rotateViewer?.reset() }
         add90.setOnClickListener { rotateViewer?.rotate90() }
-        ok.setOnClickListener { onOK() }
+        ok.setOnClickListener {
+            onOK() }
 
         rotateViewer.overlay = overlay
         overlay.rotateViewer = rotateViewer
@@ -39,14 +42,24 @@ class RotateFragment : ImageViewFragment() {
 
     override fun initImpl(isOnBack: Boolean) {
         setImagePreview(viewModel.resultMat)
+
         imageView.runWhenInitialized {
             overlay.initMatrix(viewModel.resultMat.width(), viewModel.resultMat.height(), imageView)
             rotateViewer!!.reset()
         }
+
+        // an ugly way to solve a bug
+        imageView.runWhenInitialized {
+            overlay.initMatrix(viewModel.resultMat.width(), viewModel.resultMat.height(), imageView)
+            rotateViewer!!.reset()
+        }
+        setImagePreview(viewModel.resultMat)
     }
+    @SuppressLint("MissingSuperCall")
     override fun onOK() {
-        //tryOrComplain {}
         viewModel.rotate(mainActivity, overlay.angle, overlay.isHorizontal)
-        super.onOK()
+
+        // goto accept fragment with isOnBack=true
+        onBack()
     }
 }

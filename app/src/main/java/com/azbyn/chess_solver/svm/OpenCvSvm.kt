@@ -55,9 +55,5 @@ fun trainOpenCv(settings: SvmSettings, X: List<Vector>, y: List<Int>, algorithm:
     trainingCats.put(0, 0, y.toIntArray())
 
     svm.train(trainingPoints, ROW_SAMPLE, trainingCats)
-    println("svm c: ${svm.c}")
-    println("svm γ: ${svm.gamma}")
-    println("svm c0: ${svm.coef0}")
-
     return OpenCvSvm(svm)
 }

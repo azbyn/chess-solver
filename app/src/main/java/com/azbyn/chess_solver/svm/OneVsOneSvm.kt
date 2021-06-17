@@ -2,7 +2,6 @@ package com.azbyn.chess_solver.svm
 
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 data class OneVsOneSvm(val subSvms: List<SubSvm>, val classes: List<Int>): MultiSvm() {
     @Serializable

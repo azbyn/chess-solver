@@ -46,7 +46,7 @@ class AcceptFragment : ImageViewFragment() {
     }
 
     override fun initImpl(isOnBack: Boolean) {
-        viewModel.init(this)
+        viewModel.init(this, isOnBack)
         imageView.resetZoom()
         setImagePreview(viewModel.resultMat)
     }
@@ -72,7 +72,7 @@ class AcceptFragment : ImageViewFragment() {
 
 
     class VM : BaseViewModel() {
-        override fun logd(s: String) = Unit
+//        override fun logd(s: String) = Unit
 
         //val resultMat get() = getViewModel<CaptureFragment.VM>().mat
         val bigMat get() = getViewModel<CaptureFragment.VM>().mat
@@ -91,9 +91,11 @@ class AcceptFragment : ImageViewFragment() {
 
         }
 
-        override fun init(frag: BaseFragment) {
+        fun init(frag: BaseFragment, isOnBack: Boolean) {
             super.init(frag)
-            resize(bigMat, resultMat, Size(), ratio, ratio)
+            logd("Accept.init $isOnBack")
+            if (!isOnBack)
+                resize(bigMat, resultMat, Size(), ratio, ratio)
         }
 
 
@@ -134,6 +136,7 @@ class AcceptFragment : ImageViewFragment() {
                     val m = Mat(2, 3, CV_64FC1)
 
                     val a = -angle * PI / 180
+//                    val a = angle * PI / 180
                     val c = cos(a)
                     val s = sin(a)
                     // this makes it that m*(w/2, h/2, 1) = (h/2, w/2)^t

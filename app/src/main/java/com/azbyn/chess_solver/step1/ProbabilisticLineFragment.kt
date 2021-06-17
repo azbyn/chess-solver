@@ -28,7 +28,6 @@ class ProbabilisticLineFragment : BaseSlidersFragment(
 
 
     class VM : SlidersViewModel() {
-        //private val inViewModel: SelectRoiFragment.VM by viewModelDelegate()
         private val inViewModel: EdgeFragment.VM by viewModelDelegate()
         private val baseMat get() = inViewModel.resultMat
         private val ogMat get() = getViewModel<AcceptFragment.VM>().resultMat
@@ -50,17 +49,16 @@ class ProbabilisticLineFragment : BaseSlidersFragment(
             return false
         }
 
-        override fun update(p: IntArray, isFastForward: Boolean) {
-            //val prevTh = lastValues[0]
-            super.update(p, isFastForward)
+        override fun update(args: IntArray, isFastForward: Boolean) {
+            super.update(args, isFastForward)
 
-            val thresh = p[0]
-            val length = p[1]
-            val gap = p[2]
+            val thresh = args[0]
+            val length = args[1]
+            val gap = args[2]
             HoughLinesP(
                 baseMat, lines, 1.0, PI / 180, thresh,
                 length.toDouble(), gap.toDouble()//20.0
-            )// maxLineGap.toDouble())
+            )
 
             if (!isFastForward) {
                 cvtColor(ogMat, previewMat, COLOR_GRAY2RGB)

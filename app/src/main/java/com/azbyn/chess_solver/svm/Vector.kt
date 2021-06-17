@@ -24,7 +24,6 @@ fun Mat.toDoubleArray(): DoubleArray {
     }
 }
 
-
 object VectorSerializer : KSerializer<Vector> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Vector", PrimitiveKind.STRING)
 
@@ -63,8 +62,6 @@ class Vector(vararg elements: Double) {
 
 fun Vector.withIndex() = this.values.withIndex()
 
-//typealias Vector = Mat
-
 fun dot(x: Vector, y: Vector): Double {
     var res = 0.0
     for (i in 0 until x.size)
@@ -78,9 +75,6 @@ fun dist2(x: Vector, y: Vector): Double {
         res += e * e
     }
     return res
-} //= norm(x.mat, y.mat, NORM_L2SQR)
+}
 
 fun dist(x: Vector, y: Vector): Double = sqrt(dist2(x, y))
-//= norm(x.mat, y.mat, NORM_L2)
-
-//operator fun Vector.get(i: Int): Double = mat.get(0, i)[0]

@@ -10,9 +10,6 @@ import org.opencv.imgproc.Imgproc.cvtColor
 import kotlin.math.min
 
 class FindBoardFragment : BaseSlidersFragment(
-    //SliderData("radius", default=50, min = 5, max = 200, stepSize =5),
-    //SliderData("unused", default=20, min=5, max=90, stepSize=5)
-//    SliderData("spacing", default=10, min = 5, max = 100, stepSize =5)
     SliderData("i", default=0, min = 0, max = 500, stepSize =1),
     SliderData("angle", default = 15, min = 1, max = 45, stepSize = 1)
 ) {
@@ -21,7 +18,6 @@ class FindBoardFragment : BaseSlidersFragment(
 
     class VM : SlidersViewModel() {
         private val inViewModel: ConnectSegmentsFragment.VM by viewModelDelegate()
-        private val segments get() = getViewModel<ProbabilisticLineMergeFragment.VM>().segments
         private val connections get() = inViewModel.connections
 
         private val ogMat get() = getViewModel<AcceptFragment.VM>().resultMat
@@ -39,13 +35,14 @@ class FindBoardFragment : BaseSlidersFragment(
         }
         class ConnectionQuad(val quad: PointQuad)
 
-        private val /*allQuads*/ connectionQuads = arrayListOf<ConnectionQuad>()
+        private val connectionQuads = arrayListOf<ConnectionQuad>()
         private fun generateQuads() {
             connectionQuads.clear()
             impl(connectionQuads)
             connectionQuads.sortByDescending { it.quad.area() }
 
-            //todo take into account how close the angles are to 90 deg
+            // todo take into account how close the angles are to 90 deg
+            // (a trapezoid is more likely to be a board than a parallelogram)
 
             logd("areas: ${connectionQuads.map { it.quad.area() }}")
 
@@ -53,14 +50,13 @@ class FindBoardFragment : BaseSlidersFragment(
                 redo(-10)
             } else {
                 val dimensions = connectionQuads[0].quad.dimensions()
-                logd("dim: $dimensions")
+
                 //if it's too elongated, it's probably wrong
                 if (dimensions.width *4 < dimensions.height ||
                     dimensions.height *4 < dimensions.width) {
-//                    logd("wrong!")
+
                     if (remainingIters <= 0) return
                     --remainingIters
-                    logd("iter-elongated $remainingIters")
 
                     inViewModel.redoRadius(5)
                     generateQuads()
@@ -76,23 +72,21 @@ class FindBoardFragment : BaseSlidersFragment(
                 --remainingIters
                 logd("iter $remainingIters")
             }
-//        fun redo(threshIncrease: Int, isFastForward: Boolean=true) {
+
             inViewModel.redo(threshIncrease, isFastForward=true, checkIters=false)
             generateQuads()
-            //update(lastValues, isFastForward)
 
             return false
         }
 
         private fun segmentBuffersToPoints(ci: ArrayList<ConnectionIdx>): ConnectionQuad { // Array<Point> {
             return ConnectionQuad(
-                PointQuad { ci[it].connection(connections).intersection })
-//            return Array(4) { seg[it].second.getIntersection(segments) }
+                PointQuad { connections[ci[it]].intersection })
+
         }
 
-        data class ConnectionIdx(/*val spi: SegmentPointIndex, */val connIdx: Int) {
-            fun connection(connections: ArrayList<Connection>) = connections[connIdx]
-        }
+        data class ConnectionIdx(val connIdx: Int)
+        operator fun ArrayList<Connection>.get(connIdx: ConnectionIdx) = this[connIdx.connIdx]
 
         private fun impl(arrayOfRes: ArrayList<ConnectionQuad>,
                          level: Int = 0,
@@ -117,11 +111,10 @@ class FindBoardFragment : BaseSlidersFragment(
 
                 if (buffer.size == 4) {
                     logd("yay: ${buffer.map { it.connIdx }.toStr()}")
-//                    val buf = // buffer.clone().
 
                     val new = segmentBuffersToPoints(buffer)
                     if (!arrayOfRes.contains(new))
-                        arrayOfRes.add(new) // ArrayList(buffer))
+                        arrayOfRes.add(new)
                 } else {
                     impl(arrayOfRes, level+1,
                         connIdx+1, completedSegmentsIndices, buffer)
@@ -139,21 +132,14 @@ class FindBoardFragment : BaseSlidersFragment(
                 val con = connections[connIdx]
 
                 fun verify(spi: SegmentPointIndex): Boolean {
-//                    if (buffer.isEmpty()) {
-//                        onSuccess(spi, connIdx, false)
-//                        return
-//                    }
                     if (completedSegmentsIndices.any { it == spi.segIdx }) {
                         log("already there - ${spi.segIdx}")
                         return false
                     }
                     log("checking $connIdx -> $spi")
                     for (b in buffer) {
-                        for (spi2 in b.connection(connections).spis) {
-                            //log("checking $spi vs $spi2")
+                        for (spi2 in connections[b].spis) {
                             if (spi.segIdx == spi2.segIdx && spi.pointIdx != spi2.pointIdx) {
-
-//                                onSuccess(spi, connIdx, true)
                                 return true
                             }
                         }
@@ -196,32 +182,18 @@ class FindBoardFragment : BaseSlidersFragment(
         override fun update(args: IntArray, isFastForward: Boolean) {
             super.update(args, isFastForward)
 
-            /*val res2 = arrayListOf<PointQuad>()// Array<Point>>()
-            impl(res2)
-
-            val res = res2.distinct().sortedBy { it.area() }
-*/
-
             val res = connectionQuads
             if (res.isEmpty()) {
-                //if (redo(-10)) {
-                //we'll solve this later - in EditSquareFragment
+                // No board found.
+                // We'll solve this later - in EditSquareFragment
+                // (we'll redo some previous steps)
                 cvtColor(ogMat, previewMat, COLOR_GRAY2RGB)
-                //}
             } else {
-                logi("result: ${res.toStr()}")
-
                 val idx = min(args[0], res.size - 1)
                 val angleCloseEnough = args[1].toRad()
 
                 resultQuad = res[idx].quad
-                //res.sortBy { it.area() }
 
-//            for ((i, a) in res.withIndex()) {
-//                a.sortCW(angleCloseEnough)
-//                val col = if (i == idx) Colors.green else Colors.red
-//                a.drawTo(previewMat, col, 5)
-//            }
                 resultQuad!!.sortCW(angleCloseEnough)
                 cvtColor(ogMat, previewMat, COLOR_GRAY2RGB)
                 resultQuad!!.drawTo(previewMat, Colors.green, 5)
@@ -233,7 +205,6 @@ class FindBoardFragment : BaseSlidersFragment(
 
         override fun update(frag: ImageViewFragment, p: IntArray) {
             frag.tryOrComplain {
-//                logTimeSec { update(p) }
                 update(p)
 
                 frag.setImagePreview(previewMat)// setImageGrayscalePreview(resultMat)

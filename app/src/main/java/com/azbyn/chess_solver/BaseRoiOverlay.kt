@@ -23,19 +23,19 @@ abstract class BaseRoiOverlay : BaseOverlay {
         const val PT_BOTTOM   = 0x20
         const val PT_V_CENTER = 0x40
     }
+
     // the 'radius' of a square (aka a square of length radius*2)
     // lineRadius   = how close to the line a touch has to be to be registered as a line press
     private var lineRadius = 0f
     private val scale get() = imageView?.matrixScale ?: 1f
 
-    //private val roi get() = viewModel.roi
     protected var matWidth = 0
         private set
     protected var matHeight = 0
         private set
 
     protected val rect = RectF()
-    abstract val roi : CvRect//()
+    abstract val roi : CvRect
 
     private var pressType = PT_NONE
     private val prev = PointF()
@@ -50,7 +50,6 @@ abstract class BaseRoiOverlay : BaseOverlay {
         lineRadius = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_MM, 5f,
                 resources.displayMetrics) //* matWidth / width / matWidth
         imageView.resetZoom()
-        //logd("margin: $margin, ${imageView.margin}")
         reset()
     }
 
@@ -75,7 +74,6 @@ abstract class BaseRoiOverlay : BaseOverlay {
             pressType = PT_NONE
             return false
         }
-        //logd("oida %02X".format(pressType))
 
         p.x = event.x
         p.y = event.y
@@ -85,7 +83,6 @@ abstract class BaseRoiOverlay : BaseOverlay {
             MotionEvent.ACTION_DOWN -> onDown()
             MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP -> {
                 pressType = PT_NONE
-                //logd("cancel/up")
                 true
             }
             MotionEvent.ACTION_MOVE -> {
@@ -104,6 +101,7 @@ abstract class BaseRoiOverlay : BaseOverlay {
         val b = rect.bottom
         val lr = lineRadius / scale
         logd("lr $lr")
+
         // if the press type is not PT_NONE
         // presses might be blocked to the ImageView
         if (BuildConfig.DEBUG && pressType != PT_NONE) {
@@ -129,7 +127,6 @@ abstract class BaseRoiOverlay : BaseOverlay {
         return true
     }
     private fun onMove(x: Float, y: Float) {
-        //logd("move")
         val deltaX = (x - prev.x).toInt()
         val deltaY = (y - prev.y).toInt()
 

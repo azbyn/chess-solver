@@ -19,9 +19,9 @@ import kotlin.system.measureTimeMillis
 
 typealias CvRect = org.opencv.core.Rect
 
-//val DESIRED_DENSITY = JniImpl.getDesiredDensity()
 const val GRAYED_OUT_COLOR: Int = 0xA0_00_00_00.toInt()
 const val IMAGE_FILE_NAME = "img.png"
+
 //shouldn't really matter
 val TIME_LOCALE: Locale = Locale.GERMANY
 
@@ -83,8 +83,7 @@ object Misc {
         return fmtMsg(priority, msg, className, st.methodName)
     }
 
-    //TODO write to a log file
-
+    //TODO write to a log file?
     fun logi(msg: String = "", e: Throwable? = null, offset: Int=0) =
         Log.i(TAG, fmtMsg("I", msg, offset), e)
     fun logd(msg: String = "", e: Throwable? = null, offset: Int=0) =
@@ -131,15 +130,11 @@ inline fun BaseFragment.tryOrComplain(f: () -> Unit) {
     } catch (e: Throwable) {
         loge(e)
     }
-//fun BaseFragment.loge(e: Throwable?) = logeImpl(mainActivity, "", e)
 }
 
 fun BaseFragment.loge(e: Throwable?) = logeImpl(mainActivity, "", e, 0)
 fun BaseFragment.loge(msg: String, offset: Int=0) =
     logeImpl(mainActivity, msg, null, offset)
-
-//fun loge(ctx: Context, e: Throwable?) = logeImpl(ctx, "", e)
-//fun loge(ctx: Context, msg: String) = logeImpl(ctx, msg, null)
 
 inline fun Context.tryOrComplain(f: () -> Unit) {
     try {

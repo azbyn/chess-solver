@@ -7,7 +7,6 @@ import org.opencv.imgproc.Imgproc.*
 
 class BlurFragment : BaseSlidersFragment(
     SliderData("Blur", default=7, min=1, max=91, stepSize=2),
-    //SliderData("Dilate", default=1, min=1, max=21, stepSize=2)) {
     SliderData("isMed", default=1, min=0, max=1, stepSize=1)
 ) {
     override val prevFragment = FragmentIndex.ACCEPT
@@ -30,11 +29,9 @@ class BlurFragment : BaseSlidersFragment(
         }
 
         private fun updateImpl(baseMat: Mat, resultMat: Mat, blurVal: Int, isMedian: Boolean) {
-//            val blurVal = AcceptFragment.VM.convertLength(blurVal_) and 1
             if (isMedian) {
                 medianBlur(baseMat, resultMat, blurVal)
             } else {
-//                blur(baseMat, resultMat, Size(blurVal.toDouble(), blurVal.toDouble()))
                 GaussianBlur(baseMat, resultMat, Size(blurVal.toDouble(), blurVal.toDouble()),0.0)
             }
         }

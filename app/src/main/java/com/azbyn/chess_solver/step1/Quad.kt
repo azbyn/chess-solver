@@ -13,10 +13,9 @@ interface Quad {
     val center: Point
 }
 
-class PointQuad(/*private*/ val points: Array<Point>): Quad {
+class PointQuad(val points: Array<Point>): Quad {
     constructor(func: (i: Int)-> Point) : this(
         points = Array(4, func))
-//        { i-> Point(p[i, 0][0], p[i,0][1]) })
 
     override fun getWeight(i: Int) = 1
     override val center: Point by lazy {

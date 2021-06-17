@@ -60,7 +60,6 @@ abstract class BaseFragment : Fragment() {
 
     val viewModelProvider: ViewModelProvider by lazy {
         ViewModelProvider(mainActivity, ViewModelProvider.NewInstanceFactory())
-        //ViewModelProvider.AndroidViewModelFactory(mainActivity.application))
     }
 
     class ViewModelDelegate<T: DumbViewModel>(val c: Class<T>) {
@@ -78,20 +77,14 @@ abstract class BaseFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //logd("$this.onCreate() - $fragmentIndex")
         FragmentManagerAdapter.replaceFragment(fragmentIndex, this)
     }
-    /*
-    init {
-        logd("new $this(): $activity")
-    }*/
+
     private var _mainActivity : MainActivity? = null
     var mainActivity
         get() = _mainActivity!!
         set(v) { _mainActivity = v }
 
-    //protected val sdPath: String
-    //        get() = Environment.getExternalStorageDirectory().path
     val fragmentManager get() = mainActivity.fragmentManager
 
     //returns true if something went wrong
@@ -114,7 +107,6 @@ abstract class BaseFragment : Fragment() {
             shouldInit = true
             return
         }
-        //logd("init: $this")
         initImpl(isOnBack)
     }
 
@@ -131,7 +123,6 @@ abstract class BaseFragment : Fragment() {
     protected abstract fun initImpl(isOnBack: Boolean)
 
     abstract fun saveData(path: String): JSONObject?
-    //open fun saveData(path: String): JSONObject? = null
 
     open fun lightCleanup() = Unit
 

@@ -9,8 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.azbyn.chess_solver.*
+import com.azbyn.chess_solver.step2.OrientationFragment
 import com.azbyn.chess_solver.svm.MultiSvm
-import com.azbyn.chess_solver.svm.OneVsOneSvm
 import com.azbyn.chess_solver.svm.OpenCvSvm
 import kotlinx.android.synthetic.main.categorise.*
 import kotlinx.serialization.decodeFromString
@@ -25,8 +25,6 @@ import org.opencv.imgproc.Imgproc.rectangle
 import org.opencv.ml.SVM
 import java.io.File
 
-
-//typealias MultiSvmKind = OneVsOneSvm
 
 class CategoriseFragment : ImageViewFragment() {
     override fun getImageView(): ZoomableImageView = imageView!!
@@ -51,7 +49,6 @@ class CategoriseFragment : ImageViewFragment() {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        //logd("Accept.onViewCreated")
         back.setOnClickListener { onBack() }
         ok.setOnClickListener { onOK() }
         reset.setOnClickListener {
@@ -66,15 +63,15 @@ class CategoriseFragment : ImageViewFragment() {
         return false
     }
 
-    //override val prevFragment = FragmentIndex.PERSPECTIVE
-    //override val topBarName: String get() = "Categorise"
-
     class VM : BaseViewModel() {
 
         private lateinit var boardClassifier: BoardClassifier
-        private val inViewModel: SquaresPreviewFragment.VM by viewModelDelegate()
 
-        private val boardImage get() = inViewModel.boardImage
+        private val inViewModel: OrientationFragment.VM by viewModelDelegate()
+
+        private lateinit var boardImage: BoardImage
+        private val fullMat get() = inViewModel.resultMat
+
         private var previewMat = Mat.zeros(boardSize, boardSize, CV_8UC4)
 
         private var piecesMap = mapOf<Piece, Mat>()
@@ -114,12 +111,8 @@ class CategoriseFragment : ImageViewFragment() {
         }
         private fun readDualClassifier(mType: ImageType, eType: ImageType, ctx: MainActivity): DoubleBoardClassifier {
             fun readWB(col: String): ClassifierWithIsEmpty {
-//                val eStr = ctx.assets.open("${col}e${eType.suffix}").reader().readText()
-
                 val eSvm = readFromJsonCtx<IsEmptyClassifier>(ctx, "${col}e${eType.suffix}")
-//                val mSvm = MultiSvm.readFromFile("${col}m${mType.suffix}")
                 val mSvm = readMultiSvm(ctx, "${col}m${mType.suffix}")
-
                 return ClassifierWithIsEmpty(eSvm=eSvm, mSvm = mSvm)
             }
 
@@ -137,16 +130,13 @@ class CategoriseFragment : ImageViewFragment() {
         }*/
 
         private fun initClassifier(ctx: MainActivity) {
-//            boardClassifier = readBoard(ctx)
 
             val mType = ImageType(24, MarginType.UseMargin)
 
 //            val mType = ImageType(32, MarginType.UseMargin)
             val eType = ImageType(24, MarginType.NoMargin)
-            boardClassifier = readDualClassifier(mType, eType, ctx) /*BoardClassifier(
-                white=readPieceClassifier(ctx, "white_classifier$suffix"),
-                black=readPieceClassifier(ctx, "black_classifier$suffix"))
-*/
+            boardClassifier = readDualClassifier(mType, eType, ctx)
+
         }
 
         private fun initPieces(ctx: MainActivity) {
@@ -183,6 +173,8 @@ class CategoriseFragment : ImageViewFragment() {
         }
 
         override fun init(frag: BaseFragment) {
+            boardImage = BoardImage(fullMat, inViewModel.xCoords, inViewModel.yCoords)
+
             frag.tryOrComplain {
                 if (piecesMap.isEmpty())
                     initPieces(frag.mainActivity)
@@ -200,17 +192,12 @@ class CategoriseFragment : ImageViewFragment() {
         }
 
         fun onReset() {
-            //TODO
-        }
 
+        }
         fun saveData() = null
-//        JSONObject().apply {
-//            put("history", history)
-//        }
 
         fun drawTo(frag: ResultFragment) {
             frag.tryOrComplain {
-//                update()
                 frag.setImageGrayscalePreview(previewMat)
             }
         }

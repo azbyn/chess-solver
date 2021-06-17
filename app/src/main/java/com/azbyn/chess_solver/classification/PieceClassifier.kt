@@ -11,56 +11,6 @@ import org.opencv.ml.SVM
 //TODO
 //TRY deskew https://docs.opencv.org/master/dd/d3b/tutorial_py_svm_opencv.html
 
-interface PieceClassifier {
-    fun classifyChoices(x: Vector): List<ClassificationResult<Piece>>
-
-    fun classify(x: Vector): ClassificationResult<Piece> = classifyChoices(x).first()
-
-}
-
-@Serializable
-data class SvmPieceClassifier<Impl: MultiSvm>(val multiSvm: Impl) : PieceClassifier {
-    override fun classifyChoices(x: Vector): List<ClassificationResult<Piece>> =
-        multiSvm.classifyChoices(x).map(::toPieceResult)
-}
-
-@Serializable
-data class PieceClassifierWithIsEmpty(
-    val svmClassifier: PieceClassifier,
-    val isEmptyClassifier: IsEmptyClassifier
-) : PieceClassifier {
-    override fun classifyChoices(x: Vector): List<ClassificationResult<Piece>> {
-        val isEmpty = isEmptyClassifier.isEmptySquare(x)
-        if (isEmpty) return listOf(ClassificationResult(Piece.Nothing, 1.0))
-        return svmClassifier.classifyChoices(x)
-    }
-}
-
-
-fun toPieceResult(res: ClassificationResult<Int>): ClassificationResult<Piece> {
-    val (cl, certainty) = res
-    return ClassificationResult(Piece.fromClass(cl), certainty)
-}
-fun SvmPieceClassifier<OpenCvSvm>.writeTo(path: String) {
-    multiSvm.svm.save(path)
-}
-
-
-
-fun pieceClassifierFromFile(path: String): SvmPieceClassifier<OpenCvSvm> {
-    return SvmPieceClassifier(OpenCvSvm(SVM.load(path)))
-}
-
-//TODO y: list piece?
-//fun trainPieceClassifier(settings: SvmSettings, X: List<Vector>, y: List<Int>, algorithm: SvmAlgorithm = ::trainSmo2):
-//        PieceClassifier {
-//    return PieceClassifier(trainOpenCv(settings, X, y))
-//}
-//
-
-
-
-
 data class BoundsD(val x0: Double, val y0: Double, val x1: Double, val y1: Double)
 
 fun wrapSquareNoMargins(fullImg: Mat, result: Mat, bounds: BoundsD, squareSize: Int) {

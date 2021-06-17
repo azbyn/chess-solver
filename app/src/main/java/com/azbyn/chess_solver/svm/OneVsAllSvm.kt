@@ -2,7 +2,6 @@ package com.azbyn.chess_solver.svm
 
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 data class OneVsAllSvm(val svms: List<Pair<Int, Svm>>): MultiSvm() {
     override fun classifyChoices(x: Vector): List<ClassificationResult<Int>> {

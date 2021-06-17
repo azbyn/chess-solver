@@ -19,11 +19,6 @@ import com.azbyn.chess_solver.step2.*
 import com.azbyn.chess_solver.crop.CropFragment
 import com.azbyn.chess_solver.rotate.RotateFragment
 
-//import com.azbyn.ocr.crop.CropFragment
-//import com.azbyn.ocr.remove_lines.*
-//import com.azbyn.ocr.roi.*
-//import com.azbyn.chess_solver.rotate.RotateFragment
-
 class NoSwipeViewPager: ViewPager {
     constructor(ctx: Context) : super(ctx)
     constructor(ctx: Context, attrs: AttributeSet) : super(ctx, attrs)
@@ -59,7 +54,7 @@ enum class FragmentIndex(private val clazz: Class<*>) {
     LINE_MERGE2(LineMerge2Fragment::class.java),
 
     ORIENTATION(OrientationFragment::class.java),
-    SQUARES_PREVIEW(SquaresPreviewFragment::class.java),
+//    SQUARES_PREVIEW(SquaresPreviewFragment::class.java),
 
     CATEGORISE(CategoriseFragment::class.java),
 
@@ -151,7 +146,7 @@ class FragmentManagerAdapter(
         pendingFastForward = true
 
         // here the exact fragment doesn't matter,
-        // we care just that it's initialised
+        // we care just that it's initialized
         val frag = currentFragment!!
         frag.tryOrComplain {
             val t = measureTimeSec {

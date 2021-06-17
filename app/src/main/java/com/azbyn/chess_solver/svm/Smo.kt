@@ -6,6 +6,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.system.exitProcess
 
+@Suppress("LocalVariableName")
 fun trainSmo(settings: SvmSettings, X_: List<Vector>, y_: List<Double>): Svm {
     val K = settings.K
     val C = settings.C

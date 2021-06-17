@@ -29,6 +29,12 @@ sealed class Kernel {
     }
     @Serializable
     data class Chi2(val gamma: Double): Kernel() {
-        override fun invoke(x: Vector, y: Vector) = TODO()// (gamma * dot(x, y) + r)
+        override fun invoke(x: Vector, y: Vector): Double {
+            var sum = 0.0
+            for (i in 0 until x.size) {
+                sum += (x[i] - y[i]).pow(2) / (x[i] + y[i])
+            }
+            return 1 - 2 * sum
+        }
     }
 }

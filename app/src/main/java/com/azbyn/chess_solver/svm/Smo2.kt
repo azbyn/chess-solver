@@ -47,18 +47,10 @@ fun trainSmo2(settings: SvmSettings, X_: List<Vector>, y_: List<Double>): Svm {
                     L = max(0.0, alpha[j] - alpha[i])
                     H = min(C, C + alpha[j] - alpha[i])
                 }
-//                if (y[i]!=y[j]) {
-//                    L = max(0.0, alpha[j] - alpha[i])
-//                    H = min(C, C + alpha[j] - alpha[i])
-//                } else {
-//                    L=max(0.0,alpha[i]+alpha[j]-C)
-//                    H=min(C,alpha[i]+alpha[j])
-//                }
                 if (L==H)
                     continue
 
                 // this looks wrong
-
                 val Kii = K(X[i], X[i])
                 val Kij = K(X[i], X[j])
                 val Kjj = K(X[j], X[j])

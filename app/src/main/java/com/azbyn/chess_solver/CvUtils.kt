@@ -89,8 +89,6 @@ fun colorMapAndNormalize(src: Mat, dst: Mat) {
     src.copyTo(dst)
     //normalize(src,dst, 0.0, 255.0, NORM_MINMAX)
     //applyColorMap(src, dst, COLORMAP_VIRIDIS)
-//    cv::normalize(src, dst, 0.0, 255.0, cv::NORM_MINMAX);
-//    cv::applyColorMap(dst, dst, getColorMap());
 }
 
 
@@ -99,17 +97,13 @@ fun colorMapAndNormalize(src: Mat, dst: Mat) {
 //    val median = mean(src)[0]
 //    val t2 = threshold(src, dst, 0.0, 255.0, THRESH_BINARY + THRESH_OTSU)
 //    val t1 = t2/2 // max(0.0, (1-sigma)*median)
-////    val t2 = t2 = min(255.0, (1+sigma)*median)
 //    //logi("median: $median => ($t1, $t2)")
 //    Canny(src, dst, t1, t2, apertureSize)
 //}
 
 fun autoCanny(src: Mat, dst: Mat, offset: Double, apertureSize:Int=3) {
-    //val median = mean(src)[0]
     val t2 = Imgproc.threshold(src, dst, 0.0, 255.0, Imgproc.THRESH_BINARY + Imgproc.THRESH_OTSU) + offset
-    val t1 = t2/2 // max(0.0, (1-sigma)*median)
-//    val t2 = t2 = min(255.0, (1+sigma)*median)
-    //logi("median: $median => ($t1, $t2)")
+    val t1 = t2/2
     Imgproc.Canny(src, dst, t1, t2, apertureSize)
 }
 
@@ -126,18 +120,17 @@ fun Iterable<Double>.angleAverage(): Double {
 }
 
 fun <E> MutableList<E>.removeRange(startIdx: Int, endIdx: Int) {
-    try { //logd("oi, ちょっと まって $startIdx: $size - $endIdx")
+    try {
         for (i in startIdx until min(endIdx, size)) {
-            ///logd("remove $startIdx / $size")
             removeAt(startIdx)
         }
     }
     catch (e: Exception) {
-        Misc.logw("rr $startIdx->$endIdx", e)
+        Misc.logw("r $startIdx->$endIdx", e)
     }
 }
 fun <E> MutableList<E>.removeCount(startIdx: Int, cnt: Int) {
-    try { //logd("oi, ちょっと まって $startIdx: $size - $endIdx")
+    try {
         for (i in 0 until cnt) {
             removeAt(startIdx)
         }
@@ -146,55 +139,3 @@ fun <E> MutableList<E>.removeCount(startIdx: Int, cnt: Int) {
         Misc.logw("rc $startIdx $cnt ", e)
     }
 }
-
-
-
-
-/*
-fun morphologicalSkeleton(src: Mat, dst: Mat) =
-    JniImpl.morphologicalSkeleton(src.nativeObj, dst.nativeObj)
-
-object JniImpl {
-    external fun blobbing(maskAddr: Long, result: ArrayList<Mat>): IntArray?
-
-    external fun bitwiseAndBlobs(boundsArr: IntArray, blobs: ArrayList<Mat>, imgAddr: Long,
-                                 dilateVal: Int, erodeVal: Int)
-
-    external fun bitwiseAndSingleBlob(x: Int, y: Int, w: Int, h: Int,
-                                      blobAddr: Long, imgAddr: Long,
-                                      dilateVal: Int, erodeVal: Int)
-
-    external fun linesExtract(matAddr: Long, linesAddr: Long, outputAddr: Long,
-                              thresh: Int, length: Double, rejectAngle: Double)
-
-
-    external fun colorMapAndNormalize(srcAddr: Long, dstAddr: Long)
-    external fun morphologicalSkeleton(srcAddr: Long, dstAddr: Long)
-
-
-    // superLinesGetDensity(lines.nativeObj, colored.nativeObj, minLength=p[0],
-// slineSize=p[1], rejectAngle=rejectAngle, desiredDensity=DESIRED_DENSITY)
-    external fun superLinesGetDensity(linesAddr: Long, outputAddr: Long,
-                                      minLength: Int, slineSize: Int, rejectAngle: Double): Int
-
-
-    external fun superLinesRemoval(linesAddr: Long, outputAddr: Long,
-                                   mids: Long,
-                                   width: Int, height: Int,
-                                   minLength: Int, slineSize: Int,
-                                   rejectAngle: Double, scale: Double)
-
-    external fun newSlineMids(): Long
-    external fun delSlineMids(addr: Long)
-
-
-    external fun getLinesMask(resultAddr: Long, thickness: Int,
-                              midsAddr: Long, width: Int, height: Int)
-
-
-    external fun getDesiredDensity(): Int
-
-    //external fun matrixScreenToDrawable(mat: FloatArray, vec: FloatArray)
-    //external fun matrixDrawableToScreen(mat: FloatArray, vec: PointF)
-}
-*/

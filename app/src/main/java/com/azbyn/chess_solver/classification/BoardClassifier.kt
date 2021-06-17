@@ -11,21 +11,6 @@ interface BoardClassifier {
     fun classifyAt(x: Int, y: Int, boardImage: BoardImage): Piece
 }
 
-data class PieceBoardClassifier(
-    val black: PieceClassifier, val white: PieceClassifier, val imageType: ImageType
-):BoardClassifier  {
-    override fun classifyAt(x: Int, y: Int, boardImage: BoardImage): Piece {
-        val isBlack = Board.isBlackSquare(x, y)
-        val classifier = if (isBlack) this.black else this.white
-        val vector = boardImage.getVectorAt(x, y, imageType = imageType)
-
-        val choices = classifier.classifyChoices(vector)
-
-        val res = choices.first()
-
-        return res.result
-    }
-}
 
 data class DoubleBoardClassifier(
     val white: DoubleClassifier,

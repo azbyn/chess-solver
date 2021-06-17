@@ -69,7 +69,9 @@ abstract class SlidersViewModel: BaseViewModel() {
     }
 }
 
-//this assumes the layout elements are named like this: <whaterer>1, <whatever>2 ...
+//this assumes the layout elements are named like this:
+// <whatever>1, <whatever>2 ...
+// which they are
 abstract class DumbSlidersFragment(
     protected val sliderDatas: Array<SliderData>,
     private val layout: Int
@@ -108,9 +110,7 @@ abstract class DumbSlidersFragment(
     final override fun onStopTrackingTouch(sb: SeekBar?) = Unit
     final override fun onStartTrackingTouch(sb: SeekBar?) = Unit
     final override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
-        //logd("from ${sb.progress} ($isPaused, $ignoreSeekBar)")
         if (!ignoreSeekBar && !isPaused) {
-            // logd("updated")
             update()
             humanModified = true
         }
@@ -122,7 +122,7 @@ abstract class DumbSlidersFragment(
     @CallSuper
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        //logd("OIDA, i'm $this")
+
         view.findViewById<TextView>(R.id.topText).text = topBarName
         view.findViewById<View>(R.id.back).setOnClickListener { onBack() }
         view.findViewById<View>(R.id.ok).setOnClickListener { onOK() }
@@ -154,7 +154,7 @@ abstract class DumbSlidersFragment(
 
     final override fun initImpl(isOnBack: Boolean) {
         imageView?.resetZoom()
-        //logd("$this($isOnBack)")
+
         viewModelInit()
 
         initSliderData(sliderDatas)
@@ -186,7 +186,7 @@ abstract class DumbSlidersFragment(
     @CallSuper
     override fun onPause() {
         super.onPause()
-        //logd("paused $this")
+
         isPaused = true
     }
     @CallSuper
@@ -201,31 +201,24 @@ abstract class DumbSlidersFragment(
         update()
     }
     fun update() {
-        //logd("$this()")
         for ((i, s) in sliderDatas.withIndex()) {
             progressBuffer[i] = s.getProgress(seekBars[i]!!)
             s.updateValueText(valueTexts[i]!!, progressBuffer[i])
         }
-        //viewModel.lastValues = progressBuffer
         updateImpl(progressBuffer)
         for ((i, s) in sliderDatas.withIndex()) {
-
-            //fun setProgress(seekBar: SeekBar, valueText: TextView, p: Int) {
             s.setProgress(seekBars[i]!!, valueTexts[i]!!, progressBuffer[i])
-            //progressBuffer[i] = s.getProgress(seekBars[i]!!)
-            //s.updateValueText(valueTexts[i]!!, progressBuffer[i])
         }
     }
 
     final override fun fastForward(): Boolean {
-        //logd("$this()")
         initSliderData(sliderDatas)
         for ((i, s) in sliderDatas.withIndex()) {
             progressBuffer[i] = s.default
         }
         return fastForwardImpl(progressBuffer)
     }
-    open fun fastForwardImpl(p: IntArray) = false //Unit
+    open fun fastForwardImpl(p: IntArray) = false
 
     private inline fun runIgnoreSeekBar(f: () -> Unit) {
         ignoreSeekBar = true
@@ -242,7 +235,7 @@ abstract class BaseSlidersFragment : DumbSlidersFragment {
     abstract val viewModel: SlidersViewModel
 
     final override val lastValues: IntArray get() = viewModel.lastValues
-    /*final*/ override fun viewModelInit() {
+    override fun viewModelInit() {
         viewModel.init(this)
     }
 

@@ -8,18 +8,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import com.azbyn.chess_solver.*
-import com.azbyn.chess_solver.Misc.logd
-import com.azbyn.chess_solver.Misc.whyIsThisCalled
 import kotlinx.android.synthetic.main.edit_square.*
 import org.json.JSONObject
 import org.opencv.core.Point
 
-class EditSquareFragment : ImageViewFragment() /*BaseSlidersFragment(
-    SliderData("reverseRot", default=0, min=0, max=1, stepSize=1)
-) */{
+class EditSquareFragment : ImageViewFragment() {
     //TODO perspective and partial edit_square, and pruning
     val viewModel: VM by viewModelDelegate()
-    //override val topBarName: String get() = "Square"
+
     override fun onCreateView(i: LayoutInflater, container: ViewGroup?, b: Bundle?): View?
             = i.inflate(R.layout.edit_square, container, false)
 
@@ -42,23 +38,10 @@ class EditSquareFragment : ImageViewFragment() /*BaseSlidersFragment(
     override fun initImpl(isOnBack: Boolean) {
         imageView?.resetZoom()
         overlay.init(viewModel.width, viewModel.height, imageView, this)
-        //logd("$this($isOnBack)")
-        //viewModelInit()
+
         viewModel.init(this, isOnBack)
 
-
-        //initSliderData(sliderDatas)
-        /*runIgnoreSeekBar {
-            for ((i, s) in sliderDatas.withIndex()) {
-                s.setMax(seekBars[i]!!)
-            }
-        }*/
         if (isOnBack) {
-            /*runIgnoreSeekBar {
-                for ((i, sd) in sliderDatas.withIndex()) {
-                    sd.setProgress(seekBars[i]!!, valueTexts[i]!!, lastValues[i])
-                }
-            }*/
             update()
         } else {
             onReset()
@@ -72,9 +55,7 @@ class EditSquareFragment : ImageViewFragment() /*BaseSlidersFragment(
 
     private fun onReset() {
         imageView?.resetZoom()
-//        update()
         viewModel.reset(this)
-//        logd("reset()")
         overlay.reset()
     }
     fun update() {
@@ -82,23 +63,16 @@ class EditSquareFragment : ImageViewFragment() /*BaseSlidersFragment(
     }
 
     class VM : BaseViewModel() {
-        private val inViewModel: /*LineFragment*/FindBoardFragment.VM by viewModelDelegate()
-        private val ogMat get() = getViewModel<AcceptFragment.VM>().resultMat
-        //private val previewMat get() = ogMat// = Mat()
-//        private val ogLines get() = inViewModel.goodLines
-//        private val angleDeg get() = inViewModel.angleDeg
+        private val inViewModel: FindBoardFragment.VM by viewModelDelegate()
+        private val origMat get() = getViewModel<AcceptFragment.VM>().resultMat
 
         private val inQuad get() = inViewModel.resultQuad
-        val width get() = ogMat/* previewMat*/.width()
-        val height get() = ogMat/*previewMat*/.height()
+        val width get() = origMat.width()
+        val height get() = origMat.height()
 
         val points = Array(4) { Point() }
         private var dirty = true
 
-//        override fun init(frag: BaseFragment) {
-//            super.init(frag)
-//            dirty = true
-//        }
         fun init(frag: BaseFragment, isOnBack: Boolean) {
             super.init(frag)
             dirty = !isOnBack
@@ -108,10 +82,7 @@ class EditSquareFragment : ImageViewFragment() /*BaseSlidersFragment(
             dirty = true
             update(frag)
         }
-            // MatOfPoint2f()//Point[4]
-           // private set
 
-        ////////
         fun fastForward(frag: BaseFragment): Boolean {
             val t = measureTimeSec {
                 init(frag)
@@ -124,15 +95,12 @@ class EditSquareFragment : ImageViewFragment() /*BaseSlidersFragment(
             return inQuad == null
         }
 
-        ////////
-
         fun update(ctx: Context, isFastForward: Boolean = false) {
             logd("update: d = $dirty")
             if (!dirty) return
             dirty = false
 
             if (inQuad != null) {
-//                logd("updated properly")
 //                whyIsThisCalled()
                 for ((i, p) in inQuad!!.points.withIndex()) {
                     this.points[i] = p.clone()
@@ -145,7 +113,7 @@ class EditSquareFragment : ImageViewFragment() /*BaseSlidersFragment(
                         .setPositiveButton(android.R.string.ok) { _, _ -> Unit }
                         .show()
                 }
-                //could be compressed with a for, but this is more explicit
+                //could be compressed with a for, but this is more redable
                 this.points[0].x = width/4.0
                 this.points[1].x = 3*width/4.0
 
@@ -160,11 +128,9 @@ class EditSquareFragment : ImageViewFragment() /*BaseSlidersFragment(
             }
         }
         fun update(frag: ImageViewFragment) {
-//            logd("upd8 ξ $frag")
             frag.tryOrComplain {
                 logTimeSec { update(frag.mainActivity) }
-//                logd("set preview? ${ogMat.size()}")
-                frag.setImagePreview(ogMat)
+                frag.setImagePreview(origMat)
             }
         }
     }

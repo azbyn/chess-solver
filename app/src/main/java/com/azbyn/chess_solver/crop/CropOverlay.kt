@@ -20,8 +20,8 @@ class CropOverlay : BaseRoiOverlay {
     private val linePaint: Paint = Paint().apply {
         strokeWidth = density
         style = Paint.Style.STROKE
-        //color = 0xA0_39_71_ED.toInt() //00_00_FF.toInt()
-        color = 0xA0_FF_FF_FF.toInt() //00_00_FF.toInt()
+        //color = 0xA0_39_71_ED.toInt()
+        color = 0xA0_FF_FF_FF.toInt()
     }
 
     constructor(ctx: Context) : super(ctx)

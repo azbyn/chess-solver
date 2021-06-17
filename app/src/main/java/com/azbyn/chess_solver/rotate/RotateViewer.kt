@@ -49,7 +49,7 @@ class RotateViewer : View {
 
     fun reset() {
         angle = centralAngle
-        //logd("reset: $angle = $centralAngle")
+//        logd("reset: $angle = $centralAngle")
     }
     fun rotate90() {
         centralAngle = (centralAngle-90) % 360
