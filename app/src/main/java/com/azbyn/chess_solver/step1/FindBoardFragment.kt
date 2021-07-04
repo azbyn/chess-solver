@@ -7,11 +7,12 @@ import com.azbyn.chess_solver.step1.ConnectSegmentsFragment.VM.SegmentPointIndex
 import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc.COLOR_GRAY2RGB
 import org.opencv.imgproc.Imgproc.cvtColor
+import kotlin.math.abs
 import kotlin.math.min
 
 class FindBoardFragment : BaseSlidersFragment(
     SliderData("i", default=0, min = 0, max = 500, stepSize =1),
-    SliderData("angle", default = 15, min = 1, max = 45, stepSize = 1)
+    SliderData("angle", default = 15, min = 1, max = 45, stepSize = 1),
 ) {
     override val viewModel: VM by viewModelDelegate()
     override val topBarName: String get() = "Find board"
@@ -28,6 +29,8 @@ class FindBoardFragment : BaseSlidersFragment(
 
         private var remainingIters = 0
 
+        private val defaultRatio = 3.0// 1.2
+
         override fun init(frag: BaseFragment) {
             super.init(frag)
             remainingIters = 10
@@ -36,14 +39,18 @@ class FindBoardFragment : BaseSlidersFragment(
         class ConnectionQuad(val quad: PointQuad)
 
         private val connectionQuads = arrayListOf<ConnectionQuad>()
-        private fun generateQuads() {
+        private fun generateQuads(ratio: Double = defaultRatio) {
             connectionQuads.clear()
             impl(connectionQuads)
-            connectionQuads.sortByDescending { it.quad.area() }
+            connectionQuads.sortBy {
+                abs(it.quad.area() - 2300)
+            }
+            /*connectionQuads.sortByDescending {
+                it.quad.area()
+            }*/
 
             // todo take into account how close the angles are to 90 deg
             // (a trapezoid is more likely to be a board than a parallelogram)
-
             logd("areas: ${connectionQuads.map { it.quad.area() }}")
 
             if (connectionQuads.isEmpty()) {
@@ -52,8 +59,8 @@ class FindBoardFragment : BaseSlidersFragment(
                 val dimensions = connectionQuads[0].quad.dimensions()
 
                 //if it's too elongated, it's probably wrong
-                if (dimensions.width *4 < dimensions.height ||
-                    dimensions.height *4 < dimensions.width) {
+                if (dimensions.width * ratio < dimensions.height ||
+                    dimensions.height * ratio < dimensions.width) {
 
                     if (remainingIters <= 0) return
                     --remainingIters
@@ -94,23 +101,15 @@ class FindBoardFragment : BaseSlidersFragment(
                          completedSegmentsIndices: ArrayList<Int> = arrayListOf(),
                          buffer: ArrayList<ConnectionIdx> = arrayListOf()
         ) {
-            fun log(@Suppress("UNUSED_PARAMETER") s: String) {
-//                Log.d("azbyn-chess", "  ".repeat(level)+"|$s")
-            }
             fun onSuccess(spi: SegmentPointIndex, connIdx: Int, addToCompletedSegments: Boolean) {
                 val lastBufferIdx = buffer.size
                 val lastCompletedSegmentIdx = completedSegmentsIndices.size
-                buffer.add(ConnectionIdx(/*spi, */connIdx))
+                buffer.add(ConnectionIdx(connIdx))
                 if (addToCompletedSegments) {
                     completedSegmentsIndices.add(spi.segIdx)
                 }
-                log("succ1: ${buffer.map { it.connIdx }}")
-                log("succ2: ${buffer.map { connections[it.connIdx] }}")
-                log("succ3: $completedSegmentsIndices")
-
 
                 if (buffer.size == 4) {
-                    logd("yay: ${buffer.map { it.connIdx }.toStr()}")
 
                     val new = segmentBuffersToPoints(buffer)
                     if (!arrayOfRes.contains(new))
@@ -124,19 +123,14 @@ class FindBoardFragment : BaseSlidersFragment(
                     completedSegmentsIndices.removeAt(lastCompletedSegmentIdx)
                 }
             }
-//            logi("->  impl($startConnectionIdx): ${buffer.map { it.connIdx }}")
-            log("impl(@$startConnectionIdx): ${buffer.map { it.connIdx }}")
 
             for (connIdx in startConnectionIdx until connections.size) {
-                log("coni: $connIdx")
                 val con = connections[connIdx]
 
                 fun verify(spi: SegmentPointIndex): Boolean {
                     if (completedSegmentsIndices.any { it == spi.segIdx }) {
-                        log("already there - ${spi.segIdx}")
                         return false
                     }
-                    log("checking $connIdx -> $spi")
                     for (b in buffer) {
                         for (spi2 in connections[b].spis) {
                             if (spi.segIdx == spi2.segIdx && spi.pointIdx != spi2.pointIdx) {
@@ -161,8 +155,7 @@ class FindBoardFragment : BaseSlidersFragment(
                         // |   |
                         // x---x
                         if (verify(con.a) && verify(con.b)) {
-                            buffer.add(ConnectionIdx(/*spi, */connIdx))
-                            logd("yay: ${buffer.map { it.connIdx }.toStr()}")
+                            buffer.add(ConnectionIdx(connIdx))
                             arrayOfRes.add(segmentBuffersToPoints(buffer)) // ArrayList(buffer))
 
                             buffer.removeAt(3)
@@ -181,7 +174,10 @@ class FindBoardFragment : BaseSlidersFragment(
         }
         override fun update(args: IntArray, isFastForward: Boolean) {
             super.update(args, isFastForward)
+//            val ratio = args[2] * 0.1
 
+//            remainingIters = 10
+//            generateQuads(ratio)
             val res = connectionQuads
             if (res.isEmpty()) {
                 // No board found.
@@ -197,7 +193,6 @@ class FindBoardFragment : BaseSlidersFragment(
                 resultQuad!!.sortCW(angleCloseEnough)
                 cvtColor(ogMat, previewMat, COLOR_GRAY2RGB)
                 resultQuad!!.drawTo(previewMat, Colors.green, 5)
-                logi("$idx/${res.size}: ${resultQuad!!.points.toStr()}")
             }
         }
 

@@ -2,31 +2,19 @@
 
 package com.azbyn.chess_solver
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
-import android.util.AttributeSet
-import android.view.MotionEvent
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
-import androidx.viewpager.widget.ViewPager
 import com.azbyn.chess_solver.Misc.logd
 import com.azbyn.chess_solver.capture.CaptureFragment
 import com.azbyn.chess_solver.classification.CategoriseFragment
-import com.azbyn.chess_solver.classification.SquaresPreviewFragment
-import com.azbyn.chess_solver.step1.*
-import com.azbyn.chess_solver.step2.*
 import com.azbyn.chess_solver.crop.CropFragment
 import com.azbyn.chess_solver.rotate.RotateFragment
-
-class NoSwipeViewPager: ViewPager {
-    constructor(ctx: Context) : super(ctx)
-    constructor(ctx: Context, attrs: AttributeSet) : super(ctx, attrs)
-
-    @SuppressLint("ClickableViewAccessibility")
-    override fun onTouchEvent(ev: MotionEvent?): Boolean = false
-    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean = false
-}
+import com.azbyn.chess_solver.step1.*
+import com.azbyn.chess_solver.step2.Edge2Fragment
+import com.azbyn.chess_solver.step2.Line2Fragment
+import com.azbyn.chess_solver.step2.LineMerge2Fragment
+import com.azbyn.chess_solver.step2.OrientationFragment
 
 @Suppress("unused")
 enum class FragmentIndex(private val clazz: Class<*>) {
@@ -82,7 +70,6 @@ enum class FragmentIndex(private val clazz: Class<*>) {
 
         private val indexMap = mutableMapOf<Class<*>, FragmentIndex>()
         fun get(clazz: Class<*>): FragmentIndex = indexMap[clazz]!!
-        //fun fromInt(int: Int) = values[int]
         init {
             for (i in values) {
                 indexMap[i.clazz] = i

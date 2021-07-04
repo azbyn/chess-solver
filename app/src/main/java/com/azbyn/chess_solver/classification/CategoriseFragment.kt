@@ -21,6 +21,7 @@ import org.opencv.core.Core.extractChannel
 import org.opencv.core.CvType.CV_8UC4
 import org.opencv.core.Mat
 import org.opencv.core.Rect
+import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc.rectangle
 import org.opencv.ml.SVM
 import java.io.File
@@ -72,7 +73,8 @@ class CategoriseFragment : ImageViewFragment() {
         private lateinit var boardImage: BoardImage
         private val fullMat get() = inViewModel.resultMat
 
-        private var previewMat = Mat.zeros(boardSize, boardSize, CV_8UC4)
+        var previewMat = Mat.zeros(boardSize, boardSize, CV_8UC4)
+            private set
 
         private var piecesMap = mapOf<Piece, Mat>()
 
@@ -131,10 +133,15 @@ class CategoriseFragment : ImageViewFragment() {
 
         private fun initClassifier(ctx: MainActivity) {
 
-            val mType = ImageType(24, MarginType.UseMargin)
+//            val mType = ImageType(24, MarginType.UseMargin)
+//            val mType = ImageType(32, MarginType.NoMargin)
+//            val eType = ImageType(32, MarginType.NoMargin)
+
+            val mType = ImageType(24, MarginType.NoMargin)
+            val eType = ImageType(24, MarginType.NoMargin)
+
 
 //            val mType = ImageType(32, MarginType.UseMargin)
-            val eType = ImageType(24, MarginType.NoMargin)
             boardClassifier = readDualClassifier(mType, eType, ctx)
 
         }
@@ -227,7 +234,10 @@ class CategoriseFragment : ImageViewFragment() {
                 val mask = Mat()
                 extractChannel(img, mask, 3)//extract alpha
                 img.copyTo(previewMat.submat(rect), mask)
-           }
+
+            }
+//            Imgcodecs.imwrite("/storage/emulated/0/Android/data/com.azbyn.chess_solver/files/result.png",
+//                previewMat)
         }
     }
 }

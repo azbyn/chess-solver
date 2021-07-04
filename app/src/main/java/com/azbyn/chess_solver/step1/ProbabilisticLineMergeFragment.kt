@@ -1,7 +1,6 @@
 package com.azbyn.chess_solver.step1
 
 import com.azbyn.chess_solver.*
-import com.azbyn.chess_solver.Misc.logd
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc.*
 import kotlin.math.*
@@ -65,8 +64,6 @@ data class Segment(val p1: Point, val p2: Point,
                    val len: Double = dist(p1, p2)) {
     val line = Line(p1, p2)
     val points = arrayOf(p1, p2)
-//    val p1 get() = points[0]
-//    val p2 get() = points[1]
 
     private fun dist(p: Point) = line.dist(p)
     fun normalizedDir() = (p1-p2).normalized()
@@ -79,10 +76,9 @@ data class Segment(val p1: Point, val p2: Point,
 
         val y1 = s.dist(p1)
         val y2 = s.dist(p2)
-        val avrg = (x1+x2+y1+y2)/4
-        val res = avrg < thresh
+        val avrg = (x1 + x2 + y1 + y2) / 4
 
-        return res
+        return avrg < thresh
     }
     fun drawTo(mat: Mat, col: Scalar, thickness: Int = 3) {
         line(mat, p1, p2, col, thickness)
@@ -140,10 +136,10 @@ class SegmentGroup(s: Segment) {
 }
 
 class ProbabilisticLineMergeFragment : BaseSlidersFragment(
-    SliderData("threshold", default=15, min = 2, max = 60, stepSize =2),
+    SliderData("thresh", default=15, min = 2, max = 60, stepSize =2),
 ) {
     override val viewModel: VM by viewModelDelegate()
-    override val topBarName: String get() = "Probabilistic Line Merge"
+    override val topBarName: String get() = "Line Merge"
 
     class VM : SlidersViewModel() {
         private val inViewModel: ProbabilisticLineFragment.VM by viewModelDelegate()

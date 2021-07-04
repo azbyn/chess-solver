@@ -84,13 +84,9 @@ class EditSquareFragment : ImageViewFragment() {
         }
 
         fun fastForward(frag: BaseFragment): Boolean {
-            val t = measureTimeSec {
-                init(frag)
-//                dirty = true
-                update(frag.mainActivity, isFastForward=true)
-                //cleanup()
-            }
-//            logd("$className: $t")
+            init(frag)
+            update(frag.mainActivity, isFastForward=true)
+
             //if this is null, then we don't continue the fast forwarding
             return inQuad == null
         }
@@ -101,7 +97,6 @@ class EditSquareFragment : ImageViewFragment() {
             dirty = false
 
             if (inQuad != null) {
-//                whyIsThisCalled()
                 for ((i, p) in inQuad!!.points.withIndex()) {
                     this.points[i] = p.clone()
                 }
@@ -113,7 +108,7 @@ class EditSquareFragment : ImageViewFragment() {
                         .setPositiveButton(android.R.string.ok) { _, _ -> Unit }
                         .show()
                 }
-                //could be compressed with a for, but this is more redable
+                //could be compressed with a for, but this is more readable
                 this.points[0].x = width/4.0
                 this.points[1].x = 3*width/4.0
 

@@ -12,6 +12,7 @@ import kotlinx.android.synthetic.main.result.*
 import kotlinx.android.synthetic.main.result.back
 import kotlinx.android.synthetic.main.result.imageView
 import org.json.JSONObject
+import org.opencv.imgcodecs.Imgcodecs
 import java.io.File
 
 class ResultFragment : ImageViewFragment() {
@@ -49,6 +50,12 @@ class ResultFragment : ImageViewFragment() {
     private fun onSave() {
         val t = measureTimeSec {
             tryOrComplain {
+//                Imgcodecs.imwrite("${mainActivity.path}/result.png",
+//                   viewModel.previewMat)
+
+//                logd("wrote '${mainActivity.path}/result.png'")
+
+
                 val cf = getViewModel<CaptureFragment.VM>()
                 val timestamp = cf.timestamp
                 val dir = File(mainActivity.path, timestamp)

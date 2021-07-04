@@ -59,7 +59,7 @@ class ConnectSegmentsFragment : BaseSlidersFragment(
         val connections = arrayListOf<Connection>()
         //val segments = arrayListOf<Segment>()
 
-        private fun drawToPreview(idx: Int, radius: Int) {
+        private fun drawToPreview(radius: Int) {
             cvtColor(ogMat, previewMat, COLOR_GRAY2RGB)
 
             for (c in connections) {
@@ -73,13 +73,6 @@ class ConnectSegmentsFragment : BaseSlidersFragment(
                 s.drawTo(previewMat, col, 3)
             }
 
-            //for testing
-            if (connections.size > 0 && idx < connections.size) {
-                val c = connections[idx]
-                circle(previewMat, c.intersection, radius, Colors.magenta, 5)
-                inSegments[c.a.segIdx].line.drawTo(previewMat, Colors.magenta,3)
-                inSegments[c.b.segIdx].line.drawTo(previewMat, Colors.magenta,3)
-            }
             dirty = false
         }
 
@@ -171,11 +164,10 @@ class ConnectSegmentsFragment : BaseSlidersFragment(
             frag.tryOrComplain {
                 logTimeSec { update(p) }
                 if (dirty || previewMat.width() == 0) {
-                    logw("dirty")
-                    drawToPreview(lastValues[2], lastValues[0])//.toInt())
+                    drawToPreview(lastValues[0])
                 }
 
-                frag.setImagePreview(previewMat)// setImageGrayscalePreview(resultMat)
+                frag.setImagePreview(previewMat)
             }
         }
     }

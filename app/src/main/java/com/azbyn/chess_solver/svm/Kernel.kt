@@ -3,6 +3,7 @@ package com.azbyn.chess_solver.svm
 import kotlinx.serialization.Serializable
 import kotlin.math.exp
 import kotlin.math.pow
+import kotlin.math.tanh
 
 @Serializable
 sealed class Kernel {
@@ -25,7 +26,7 @@ sealed class Kernel {
     @Serializable
     data class Sigmoid(val gamma: Double, val r: Double): Kernel() {
         //alpha = 1/dim
-        override fun invoke(x: Vector, y: Vector) = (gamma * dot(x, y) + r)
+        override fun invoke(x: Vector, y: Vector) = tanh(gamma * dot(x, y) + r)
     }
     @Serializable
     data class Chi2(val gamma: Double): Kernel() {

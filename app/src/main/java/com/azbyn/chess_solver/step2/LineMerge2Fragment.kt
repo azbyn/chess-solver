@@ -30,12 +30,11 @@ data class HesseLine(val rho: Double, val theta: Double,
 
 class LineMerge2Fragment : BaseSlidersFragment(
     // for our board there's a margin of about one square
-    SliderData("hasMargin", default=1, min=0, max=1, stepSize=1),
-    SliderData("xOffset", default=0, min=-100, max=100, stepSize=2),
-    SliderData("yOffset", default=0, min=-100, max=100, stepSize=2)
+    SliderData("offset x", default=0, min=-100, max=100, stepSize=2),
+    SliderData("offset y", default=0, min=-100, max=100, stepSize=2)
 ) {
     override val viewModel: VM by viewModelDelegate()
-    override val topBarName: String get() = "Merge 2"
+    override val topBarName: String get() = "Square Bounds"
 
     class VM : SlidersViewModel() {
         private val inViewModel: Line2Fragment.VM by viewModelDelegate()
@@ -49,14 +48,18 @@ class LineMerge2Fragment : BaseSlidersFragment(
 
         override fun update(args: IntArray, isFastForward: Boolean) {
             super.update(args, isFastForward)
-            val hasMargin = args[0] != 0
-            val xOffset = args[1]
-            val yOffset = args[2]
+            val xOffset = args[0]
+            val yOffset = args[1]
+
+            val hasMargin = true
 
             val squareSize = origMat.width() / (if (hasMargin) 10 else 8)
 
-            fun impl(lines: ArrayList<HesseLine>, extraOffset: Int,
-                     getCoord: (x: HesseLine)->Double): DoubleArray {
+            fun impl(
+                lines: ArrayList<HesseLine>, extraOffset: Int,
+                verbose: Boolean = false,
+                getCoord: (x: HesseLine) -> Double,
+            ): DoubleArray {
                 val coords = ArrayList(lines.map(getCoord).sorted())
 
                 val eps = squareSize / 4
@@ -116,11 +119,26 @@ class LineMerge2Fragment : BaseSlidersFragment(
                     }
                     averageLen = lenSum / cnt
 
-                    //if values are near 0 it would be bad if we just summed (it % averageLen)
-                    //we already implemented a function that does the circular average of values
-                    //in 0..pi, so let's use that.
-                    averageOffset = coords.map { (it % averageLen)/averageLen * PI/2 }
-                        .angleAverage() / (PI/2) * averageLen
+                    val all = coords.map { (it % averageLen)}
+
+                    averageOffset = if (all.minOrNull()!! < 10 && all.maxOrNull()!! > averageLen - 10) {
+                        logd("!")
+                        val off = averageLen / 2
+                        coords.map { (it+off)  % averageLen }.average() - off
+                    } else {
+                        all.average()
+                    }
+
+                    if (verbose) {
+                        logd("offsets: $all")
+                        logd("ß ${all.average()}")
+                    }
+//                    averageOffset = coords.map { (it % averageLen)/averageLen * PI/2 }
+//                        .angleAverage() / (PI/2) * averageLen
+
+                    if (verbose) {
+                        logd("avrgOffset: $averageOffset")
+                    }
                 } else {
                     logw("Not enough lines found")
                     averageLen = squareSize.toDouble()
@@ -142,7 +160,7 @@ class LineMerge2Fragment : BaseSlidersFragment(
             val middle = origMat.width()/2.0
 
             outHori = impl(horiLines, yOffset) { it.xIntersection(middle) }
-            outVert = impl(vertLines, xOffset) { it.yIntersection(middle) }
+            outVert = impl(vertLines, xOffset, verbose=true) { it.yIntersection(middle) }
 
             val color = Colors.darkGreen
             for (c in outHori) {
